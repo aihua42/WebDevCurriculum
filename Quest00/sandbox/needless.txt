@@ -1,0 +1,1 @@
+This file is not needed, just for testing rm command!
