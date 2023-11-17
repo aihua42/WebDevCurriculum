@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 Hello World, I'm Ava! Let's have fun with git!
 I add this line for checking the Header is pointing master branch.
+=======
+Hello World, I'm Ava! Let's have fun with git! 
+I add this line for branch testing.
+>>>>>>> testing
