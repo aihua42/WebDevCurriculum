@@ -5,62 +5,62 @@
 		<!-- TODO: 또 무엇이 필요할까요? -->
 		<title> NAVER </title>
 		<link rel="icon" type="image/x-icon" href="/images/favicon.ico">   <!-- 파비콘 넣어주기 -->
+		<!-- meta: 웹 서버와 웹 브라우저간에 상호 교환되는 정보를 정의하는데 사용합 -->
 		<meta name="author" content="Aihua Jin">
 		<meta name="keywords" content="네이버, naver"> 
+		<meta name="robots", content="index, nofollow">
 		<meta name="application-name" content="Naver">
 		<meta name="subject" content="NAVER - 네이버">
-		<meta name="description" content="네이버 모바일 메인에서 다양한 정보와 유용한 컨텐츠를 만나 보세요." />  
+		<meta name="description" content="네이버 모바일 메인에서 다양한 정보와 유용한 컨텐츠를 만나 보세요.">  
+		<style type="text/css">
+			
+		</style>
+		<script type="text/javascript">
+			
+		</script>
 	</head>
 
 	<body>
 		<header>
 			<!-- TODO: 어디까지를 header로 보는 것이 좋을까요? -->
-			<section>
-				<nav>
-					<span>
-						<a href="바로가기 링크" target="_blank"><img src="바로가기 아이콘"></a>
-					</span>
-					<span>
-						<a href="QR 체크인 링크" target="_blank">QR 체크인</a>
-						<a href="Npay 링크" target="_blank"><img src="Npay 아이콘"></a>
-						<a href="모르겠는 링크" target="_blank"><img src="모르겠는 아이콘"></a>
-					</span>
-				</nav>
-			</section>
+			<nav>
+				<span>
+					<a href="바로가기 링크" target="_blank"><img src="바로가기 아이콘"></a>
+				</span>
+				<span>
+					<a href="QR 체크인 링크" target="_blank">QR 체크인</a>
+					<a href="Npay 링크" target="_blank"><img src="Npay 아이콘"></a>
+					<a href="모르겠는 링크" target="_blank"><img src="모르겠는 아이콘"></a>
+				</span>
+			</nav>
 			
-			<section>
-				<h1>NAVER</h1>
-			</section>
+			<h1>NAVER</h1>
 			
-			<section>
-				<search>
-					<form>
-						<input type="text" id="inputbox" name="inputbox" placeholder="검색어를 입력해주세요.">
-					</form>
-				</search>
-			</section>
+			<search>
+				<form>
+					<input type="text" id="inputbox" name="inputbox" placeholder="검색어를 입력해주세요.">
+				</form>
+			</search>
 			
 
-			<section>
+			<nav>
 				<p>
-					<!--
-					<nav>
-						<div>
-				    	<a href="링크00" target="_blank"><img src="아이콘00"></a>
-						<a href="링크01" target="_blank"><img src="아이콘01"></a>
-						<a href="링크02" target="_blank"><img src="아이콘02"></a>
-						<a href="링크03" target="_blank"><img src="아이콘03"></a>
-						</div>
-			   		
-			   			<div>
-				    	<a href="링크10" target="_blank"><img src="아이콘10"></a>
-						<a href="링크11" target="_blank"><img src="아이콘11"></a>
-						<a href="링크12" target="_blank"><img src="아이콘12"></a>
-						<a href="링크13" target="_blank"><img src="아이콘13"></a>
-						</div>
-				    </nav>
+					<!-- 
+					<ul>
+						<li><a href="#" target="_blank"><img src="아이콘00"></a></li>
+						<li><a href="#" target="_blank"><img src="아이콘01"></a></li>
+				    	<li><a href="#" target="_blank"><img src="아이콘02"></a></li>
+						<li><a href="#" target="_blank"><img src="아이콘03"></a></li>
+					</ul>
+		   		
+		   			<ul>
+		   				<li><a href="#" target="_blank"><img src="아이콘10"></a></li>
+				    	<li><a href="#" target="_blank"><img src="아이콘11"></a></li>
+						<li><a href="#" target="_blank"><img src="아이콘12"></a></li>
+						<li><a href="#" target="_blank"><img src="아이콘13"></a></li>
+					</ul>
 					-->
-				
+				    
 					<table>
 						<tr>
 							<td><a href="링크00" target="_blank"><img src="아이콘00" alt="뉴스판" align="baseline"></a></td>
@@ -75,9 +75,8 @@
 							<td><a href="링크13" target="_blank"><img src="아이콘13" alt="..." align="baseline"></a></td>
 						</tr>
 					</table>
-			
 				</p>
-			</section>
+			</nav>
 		</header>
 		<br>
 		<br>
@@ -85,18 +84,38 @@
 
 		<section class="main">
 			<!-- TODO: main은 어떤 식으로 나눌 수 있을까요? -->
-			<section>	
+			<section id="streaming">	
 				<p>
-					<nav>
-						<span><a href="날씨 링크" target="_blank"><strong>10° 맑음</strong></a></span>
-						<span><a href="방송 링크" target="_blank">Now 지금 방송중</a></span>	
-					</nav>
+					<!--
+					<div>
+						<span><b>10° 맑음</b></span>
+					    <span><a href="방송 링크" target="_blank">Now 지금 방송중</a></span>
+					</div>
+					-->
+					
+					<table>
+						<tr>
+							<td><img src="날씨 아이콘"></td>
+							<td>
+								<table>
+									<tr>
+										<td><b>10° 맑음</b></td>
+									</tr>
+									<tr>
+										<td>어제보다 2° 높아요</td>
+									</tr>
+								</table>
+							</td>
+							<td><a href="방송 링크" target="_blank">Now 지금 방송중</a></td>
+						</tr>
+					</table>
 				</p>
 			</section>
+			<br>
 
-			<section>
+			<section id="weather">
 				<details>
-					<summary><strong>날씨</strong> <sub>서울시 잠실동 <a href="GPS링크"><img src="GPS 아이콘"></a></sub></summary>
+					<summary><b>날씨</b> <sub>서울시 잠실동 <a href="GPS링크"><img src="GPS 아이콘"></a></sub></summary>
 					<p>
 						<nav>
 							<span><a href="시간대별 날씨 링크">시간대별 날씨</a></span>
@@ -107,13 +126,14 @@
 		   			</p>
 				</details>
 			</section>
+			<br>
 
-			<section>	
+			<section id="covid19">	
 				<p>
 					<table>
 						<tr>
-							<td><a href="코로나19 링크" target="_blank"><img src="코로나19"><strong>코로나19</strong></a></td>
-							<td><a href="코로나19 팩트체크 링크" target="_blank"><img src="팩트체크"><strong>코로나19 팩트체크</strong></a></td>
+							<td><a href="코로나19 링크" target="_blank"><img src="코로나19"><b>코로나19</b></a></td>
+							<td><a href="코로나19 팩트체크 링크" target="_blank"><img src="팩트체크"><b>코로나19 팩트체크</b></a></td>
 						</tr>
 						<tr>
 							<td>국내외 확진 현황</td>
@@ -122,39 +142,44 @@
 					</table>
 				</p>
 			</section>
+			<br>
 
-			<section>	
+			<section id="holiday">	
 				<p>
-					<a href="제102주년 대한민국 임시정부 수립일 링크" target="_blank"><img src="코로나19">제102주년 <strong>대한민국 임시정부 수립일</strong></a>
+					<a href="제102주년 대한민국 임시정부 수립일 링크" target="_blank"><img src="코로나19">제102주년 <b>대한민국 임시정부 수립일</b></a>
 				</p>
 			</section>
+			<br>
 
-			<section>	
+			<section id="appDownLoad">	
 				<p>
 					<nav>
-						<span>앱으로 <strong>새로운 네이버</strong>를 더 쾌적하게 사용해 보세요.</span>
+						<span>앱으로 <b>새로운 네이버</b>를 더 쾌적하게 사용해 보세요.</span>
 						<span><button type="button" onclick="window.open('이동할 페이지')">앱 사용하기</button></span>
 					</nav>
 				</p>
 			</section>
+			<br>
 
-			<section>
+			<section id="webtoon">
 				<p>
 					<details>
-						<summary><strong>웹툰</strong></summary>
+						<summary><b>웹툰</b></summary>
 						<p>웹툰 목록</p>
 					</details>
 				</p>
 			</section>
+			<br>
 
-			<section>
+			<section id="miniSections">
 				<p>
 					<table>
 						<tr>
-							<td><strong>인기 주제 판을 확인해보세요!</strong></td>
+							<td><b>인기 주제 판을 확인해보세요!</b></td>
 							<td><a href="판관리 링크" target="_blank">판관리</a></td>
 						</tr>
 					</table>
+
 					<nav>
 						<div>
 							<span onclick="window.open('영화 페이지')"><img src="필름">영화판</span>
@@ -165,16 +190,17 @@
 							<span onclick="window.open('경제 페이지')"><img src="그래프">경제M판</span>
 						</div>
 			   		</nav>
-				</p>
-			</section>
 
-			<section>
-				<p>
-					<span onclick="window.open('업데이트 링크');">
-						<button type="button">알립니다</button> 네이버앱 업데이트 사전 안내
-					</span>
 				</p>
 			</section>
+			<br>
+
+			<section id="update">
+				<p>
+					<button type="button" onclick="window.open('업데이트 링크');">알립니다</button> 네이버앱 업데이트 사전 안내
+				</p>
+			</section>
+			<br>
 		</section>
 		<br>
 		<br>
@@ -182,26 +208,38 @@
 
 		<footer>
 			<!-- TODO: 하단의 여러 가지 링크들은 어떻게 처리하면 좋을까요? -->
-			<section>
-				<p>
-					<nav>
+			<p>
+				<nav>
+					<div>
+						<!--
+						<ul>
+							<li><a href="#" target="_blank">로그인</a></li>
+							<li><a href="#" target="_blank">전체서비스</a></li>
+							<li><a href="#" target="_blank">PC</a></li>
+						</ul>
+						-->
 				    	<a href="로그인 링크" target="_blank">로그인</a> | 
 				    	<a href="전체서비스 링크" target="_blank">전체서비스</a> | 
 				    	<a href="PC버전 링크" target="_blank">PC</a>
-			   		</nav>
-			    	<nav>
+		   			</div>
+		    		<div>
+		    			<!--
+						<ul>
+							<li><a href="#" target="_blank">로그인</a></li>
+							<li><a href="#" target="_blank">전체서비스</a></li>
+							<li><a href="#" target="_blank">PC</a></li>
+						</ul>
+						-->
 				    	<a href="이용약관 링크" target="_blank">이용약관</a> | 
 				    	<a href="개인정보처리방침 링크" target="_blank"><strong>개인정보처리방침</strong></a> | 
 				    	<a href="고객센터 링크" target="_blank">고객센터</a>
-			    	</nav>
-				</p>
-			</section>
+		    		</div>
+				</nav>
+			</p>
 
-			<section>
-				<p>
-					<h3>NAVER</h3>
-				</p>
-			</section>
+			<p>
+				<strong>NAVER</strong>
+			</p>
 		</footer>
 	</body>
 </html>

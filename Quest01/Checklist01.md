@@ -7,6 +7,9 @@
 * [History of HTML](https://en.wikipedia.org/wiki/HTML)
 * [StatCounter](https://gs.statcounter.com/)
 
+## My Resources
+* [w3school] (https://www.w3schools.com/tags)
+
 ## Checklist
 * ### HTML 표준의 역사는 어떻게 될까요?
    90년대 초반에 HTML이 첫 등장을 하면서 브라우저와 함께 인터넷 사용은 폭발적으로 증가하게 된다. 이때 각 브라우저들은 자신만의 코드를 개발해서 사용하게 되었고, 서로 다른 브라우저들은 서로 호환되지 않았으며, 사용자들의 혼란은 가중되었다. 사용자들의 편리함과 개발자들의 노고를 덜기 위해서 웹 표준을 만들자는 움직임이 시작되었다. 1995년에 웹 표준을 관리하는 기관인 W3C(World Wide Web Consortium)가 HTML2.0에서 표준화된 내용을 발표하면서 1997년엔 HTML3.2, 1999년엔 HTML4.01, 2000년엔 XHTML1.0, 그리고 2014년에 최근까지 사용되고 있는 HTML 5를 발표했다.
@@ -65,7 +68,7 @@ Image inspired by  [**semrush**](https://www.semrush.com/blog/semantic-html5-gui
       시맨틱 엘리먼트는 콘텐츠를 논리적 섹션으로 구성하고 각 부분의 역할과 기능을 전달하는 데 도움이 된다. 웹사이트의 구조를 파악하기 쉽도록 도와주고 좀 더 명시적이면서 직관적인 구조의 설계가 가능하게 해준다.
     * ### `<section>`과 `<div>`, `<header>`, `<footer>`, `<article>` 엘리먼트의 차이점은 무엇인가요?
        - 페이지를 여러 주제나 하위 제목 등 목록을 형성하려면 `<section>`을
-       - 스타일 지정이나 스크립팅 목적으로 필요한 경우에는 `<div>`를 
+       - 스타일 지정이나 스크립팅 목적으로 필요한 경우에는 `<div>`를
        - 로고나 제목 등이 포함된 페이지 상단에는 `<header>`를
        - 저작권이나 연락처, 소셜 미디어 계정 링크가 포함된 하단에는 `<footer>`를
        - 블로그 게시물, 뉴스 기사, 제품 리뷰 등 독립적으로 배포하거나 재사용할 수 있는 독립형 콘텐츠는 `<article>`를, 따라서 `<article>`에 위에 네개 태그를 다 넣을수 있다.
