@@ -8,7 +8,7 @@
 * [StatCounter](https://gs.statcounter.com/)
 
 ## My Resources
-* [w3school] (https://www.w3schools.com/tags)
+* [w3school](https://www.w3schools.com/tags)
 
 ## Checklist
 * ### HTML 표준의 역사는 어떻게 될까요?
