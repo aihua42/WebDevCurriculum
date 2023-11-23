@@ -1,0 +1,18 @@
+@charset "utf-8";
+
+.navsHeader {
+  display: flex;
+  justify-content: flex-start;
+  padding: 10px;
+}
+.navsHeader nav:last-child {
+  margin-left: auto;
+  display: flex;
+  justify-self: flex-end;
+}
+.navsHeader nav:last-child a {
+  padding-left: 10px;
+}
+
+
+

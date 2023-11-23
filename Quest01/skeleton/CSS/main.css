@@ -1,0 +1,36 @@
+@charset "utf-8";
+
+.logo {
+  padding-top: 70px;
+  padding-bottom: 20px;
+}
+
+.input {
+  padding-bottom: 25px;
+}
+.input form input {
+  width: 90%;
+  height: 60px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 2px;
+  border: solid 1px #03cf5d;
+  font-size: 20px;
+}
+.input form input::-webkit-input-placeholder {
+  opacity: 0.2;
+}
+
+.navs ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 180px;
+  margin-right: 180px;
+  padding-bottom: 50px;
+}
+.navs ul li {
+  padding: 35px;
+}
+
