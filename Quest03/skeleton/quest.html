@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<title>Quest03.html</title>
 		<meta charset="UTF-8">
 		<style>
 			.square {
@@ -36,12 +37,26 @@
 			let row1Squares = document.querySelectorAll('.row1 .square');
 			for(let node of row1Squares) {
 				/* TODO: node 변수를 어떻게 조작해야 할까요? */
+				/* 첫째 줄 박스 클릭할때 노란색 <-> 흰색 토글 */
+				node.onclick = function() {
+					if (getComputedStyle(node).backgroundColor === 'rgba(0, 0, 0, 0)' 
+					   /*|| node.style.backgroundColor === 'white'*/) { 
+						node.style.backgroundColor = 'yellow';
+					} else {
+						//node.style.backgroundColor = 'white'; // rgb(225, 225, 0)
+						node.style.backgroundColor = 'transparent'; 
+					}
+				}
 			}
 
 			let row2Squares = document.querySelectorAll('.row2 .square');
 			for(let node of row2Squares) {
 				/* TODO: node 변수를 어떻게 조작해야 할까요? */
-			}
+				/* 둘째 줄 박스 클릭할때 enabled 이름의 css class가 클릭된 DOM 노드에 추가/제거 */
+				node.addEventListener("click", () => {  
+					node.classList.toggle('enabled');
+				});
+			}   
 		</script>
 	</body>
 </html>

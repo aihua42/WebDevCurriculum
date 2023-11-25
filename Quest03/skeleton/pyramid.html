@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script>
+    let numLines = Number(prompt('몇줄 보여줄가요?', ''));
+    function printItems(item, initial, max) {
+      let result = '';
+      for (let i = initial; i < max; i++) {
+        result += item;
+      }
+      return result;
+    }
+    
+    let pyramid = '';
+    const space = ' ';
+    const star = '*';
+    for (let i = 0; i < numLines; i++) { 
+      /*
+      for (let numSpace = i; numSpace < numLines-1; numSpace++) { 
+        pyramid += space;
+      }
+      for (let numStar = 0; numStar < (2*i + 1); numStar++) { 
+        pyramid += star;
+      }
+      */
+      pyramid += printItems(space, i, numLines-1);
+      pyramid += printItems(star, 0, 2*i+1);
+      pyramid += '\n';
+    }
+    
+    console.log(pyramid);
+
+    /*
+    // empty Array를 만들고 reduce() 사용해보기
+    let array = Array(numLines).fill().map((value, idx) => { return idx; });
+    let pyramid2 = array.reduce((pyramid2, idx) => {
+      pyramid2 += Array(numLines-idx-1).fill(' ').join('');
+      pyramid2 += Array(2 * idx + 1).fill('*').join('');
+      pyramid2 += '\n';
+      return pyramid2;
+    }, "");
+    console.log(pyramid2);
+    */
+    
+  </script>
+</head>
+<body>
+  
+</body>
+</html>
