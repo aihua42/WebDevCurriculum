@@ -6,17 +6,10 @@
   <title>Document</title>
   <script>
     let numLines = Number(prompt('몇줄 보여줄가요?', ''));
-    function printItems(item, initial, max) {
-      let result = '';
-      for (let i = initial; i < max; i++) {
-        result += item;
-      }
-      return result;
-    }
-    
     let pyramid = '';
     const space = ' ';
     const star = '*';
+
     for (let i = 0; i < numLines; i++) { 
       /*
       for (let numSpace = i; numSpace < numLines-1; numSpace++) { 
@@ -30,20 +23,32 @@
       pyramid += printItems(star, 0, 2*i+1);
       pyramid += '\n';
     }
-    
     console.log(pyramid);
 
-    /*
-    // empty Array를 만들고 reduce() 사용해보기
-    let array = Array(numLines).fill().map((value, idx) => { return idx; });
-    let pyramid2 = array.reduce((pyramid2, idx) => {
-      pyramid2 += Array(numLines-idx-1).fill(' ').join('');
-      pyramid2 += Array(2 * idx + 1).fill('*').join('');
-      pyramid2 += '\n';
-      return pyramid2;
-    }, "");
+    function printItems(item, initial, max) {
+      let result = '';
+      for (let i = initial; i < max; i++) {
+        result += item;
+      }
+      return result;
+    }
+
+    
+    // Array를 만들고 reduce() 사용해보기
+    let spaceCounts = Array(numLines).fill().map((value, idx) => { return idx+1; });
+    //const fillChar = (char, num) => Array(num).fill(char).join('');
+    
+    let pyramid2 = spaceCounts.reduce((pyramid, lineNum) => {
+      const spaces = space.repeat(numLines-lineNum); //fillChar(space, numLines-lineNum);
+      const stars = star.repeat(2 * lineNum - 1); //fillChar(star, 2 * lineNum - 1);
+      //pyramid2 += fillChar(space, numLines-lineNum); //Array(numLines-lineNum).fill(space).join('');
+      //pyramid2 += fillChar(star, 2 * lineNum - 1);//Array(2 * lineNum - 1).fill(star).join('');
+      //pyramid2 += '\n';
+      //pyramid2 = spaces + stars + '\n';
+      return pyramid + spaces + stars + '\n';
+    }, '');
     console.log(pyramid2);
-    */
+    
     
   </script>
 </head>
