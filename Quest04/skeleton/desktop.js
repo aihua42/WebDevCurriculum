@@ -1,3 +1,7 @@
+// on...: 
+// addEventListener...: 범용적인, 모든 이벤트 가능
+
+// window처럼 만들었어야...
 class Desktop {
 	/* TODO: Desktop 클래스는 어떤 멤버함수와 멤버변수를 가져야 할까요? */
 	// two types of icons: file, folder
@@ -84,6 +88,12 @@ class File {
 				icon.onmousemove = null;
 			};
 		};
+
+		// mouse down 변수 isMouseDown = false;
+		//    isMouseDown = true;
+		//  mouse move일때 상태 false return;
+		//  mouse up일때 isMouseDown = false
+		// 모두 같은 레벨에 있으면 move 는 down, up에 없어도 된다. 이게 효율적
 	}
 };
 
@@ -106,22 +116,7 @@ class Folder extends File {
 class Window {
 	/* TODO: Window 클래스는 어떤 멤버함수와 멤버변수를 가져야 할까요? */
 	constructor () {
-		const win = window.open('', '_blank', 'width=500, height=400, resizable=yes');
-		win.document.write(`
-		<html>
-			<head>
-				<title>New Window!</title>
-				<meta charset="UTF-8">
-				<link rel="stylesheet" href="./desktop.css">
-				<script src="./desktop.js"></script>
-			</head>
-			<body>
-				<section class="desktop"></section>
-				<script>
-					let desktop = new Desktop();
-				</script>
-			</body>
-		</html>`);
+		const win = window.open('http://127.0.0.1:5500/Quest04/skeleton/desktop.html', '_blank', 'width=700, height=600, resizable=yes');
 		this.win = win;
 	}
 };
