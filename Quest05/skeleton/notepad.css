@@ -73,6 +73,9 @@ button {
 	text-align: center;
 	cursor: pointer;
 }
+.color span {
+	color: blue;
+}
 .text-style {
 	display: flex;
 	gap: 10px;

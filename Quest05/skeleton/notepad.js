@@ -135,7 +135,7 @@ class SaveAs {
     newTitle = prompt('Save as:', '');
     while (newTitle === '' || localStorage.getItem(newTitle)) {
       newTitle = newTitle === '' ? prompt(`Title shouldn't be empty!`, '') : prompt(`"${newTitle}" already exists!`, '');
-    } console.log(newTitle);
+    } 
     this.newTitle = newTitle; 
     this.text = document.querySelector('textarea').value;
     this.saveAs();
