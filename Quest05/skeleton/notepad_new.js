@@ -100,7 +100,7 @@ class TextContainer {
 
     this.titleMap = { welcomePage: null };
     this.textMap = { welcomePage: welcomePage };
-    this.show = 'welcomePage';
+    this.titleShown = 'welcomePage';
   }
 
   isWelcomePage(textObj) {
@@ -132,13 +132,13 @@ class TextContainer {
 
     this.titleMap = titleMap;
     this.textMap = textMap;
-    this.show = title;
+    this.titleShown = title;
 
-    this.showTarget(this.titleMap, this.textMap, this.show);
+    this.showTarget(this.titleMap, this.textMap, this.titleShown);
 
     textTitle.ele.onclick = () => {
-      this.show = textTitle.getTitle();
-      this.showTarget(this.titleMap, this.textMap, this.show);
+      this.titleShown = textTitle.getTitle();
+      this.showTarget(this.titleMap, this.textMap, this.titleShown);
     };
   }
 
@@ -155,9 +155,9 @@ class TextContainer {
 
     this.titleMap = titleMap;
     this.textMap = textMap;
-    this.show = Object.keys(this.titleMap)[idx-1];
+    this.titleShown = Object.keys(this.titleMap)[idx-1];
 
-    this.showTarget(this.titleMap, this.textMap, this.show);
+    this.showTarget(this.titleMap, this.textMap, this.titleShown);
   }
 
   showTarget(titleMap, textMap, titleShown) {
