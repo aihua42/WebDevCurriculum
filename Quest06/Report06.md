@@ -97,11 +97,11 @@
     server: 웹 서버 / 웹 어플리케이션 서버    
 
     `1.` 사용자가 웹 브라우저에 이동하려는 사이트 주소(URL) 입력.    
-    `2.` DNS 서버에 웹 서버의 호스트 이름을 IP 주소로 변경 요청. 3-way-handshake       
-    `3.` client TCP와 웹 서버 연결 시도.     
-          step1 client TCP에서 SYN(임의로 생성된 시퀀스 번호)를 서버에 전달.      
-          step2 서버에서 SYN ACK (+1)을 client TCP에 전달.     
-          step3 client TCP에서 ACK(+1)를 서버에 전달. 요청이 수락됨.  
+    `2.` DNS 서버에 웹 서버의 호스트 이름을 IP 주소로 변경 요청.     
+    `3.` client TCP와 웹 서버 연결 시도. 3-wayhandshake       
+          Client -> Server : TCP에서 [SYN](임의로 생성된 시퀀스 번호)를 전달.      
+          Server -> Client : [SYN ACK]을 TCP에 전달.     
+          Client -> Server : TCP에서 [ACK] 를 전달. 요청이 수락됨.  
     `4.` Request: 서버에게 GET 명령 전송.    
          GET /index.html HTTP/1.1               -> 요청문     
          Host : www.daum.net                            	-> 헤더     
@@ -117,8 +117,8 @@
     `6.` Close: 서버 - client 연결 해제. 4-way-handshake     
          Client -> Server : FIN     
 	       Server -> Client : ACK      
-	       SERVER -> Client : FIN      
-	       Client -> Server : ACK(+1)   
+	       Server -> Client : FIN      
+	       Client -> Server : ACK   
     `7.` 브라우저가 웹 문서 출력.
 
     <br>   
@@ -185,34 +185,56 @@
   ```
   traceroute www.google.com
   nslookup www.google.com => ip address 알아내서 wireshark filtering 하기 
-  ```
-  ![](./images/wiresharkHandShakingStep1.png)
+  ```    
+  3-way handshake 과정: 
 
-  ![](./images/3-way-handshakeStep10.png)
+  ![](./images/ThreeWayHandShaking.png)
 
-  ![](./images/3-way-handshakeStep11.png)
+  ![](./images/3-way-handshakeStep1.png)
 
-  ![](./images/3-way-handshakeStep12.png)
+  ![](./images/3-way-handshakeStep2.png)
+
+  ![](./images/3-way-handshakeStep3.png)   
+
+  4-way handshake 과정:     
+
+  ![](./images/FourWayHandShaking.png)  
+
+  ![](./images/4-way-handshakeStep1.png)    
+
+  ![](./images/4-way-handshakeStep21.png)    
+
+  ![](./images/4-way-handshakeStep22.png)    
+
+  ![](./images/4-way-handshakeStep3.png)   
+
+  ![](./images/4-way-handshakeStep4.png)   
+
 
   * #### TCP 패킷을 주고받는 과정은 어떻게 되나요?
-    3-way handshake    
     TCP Segment Length: 0        
+
+    3-way handshake 과정:   
+    SYN = 1, ACK = 0 => 연결 패킷 (연결 요청)      
+    SYN = 1, ACK = 1 => 연결 수신 통지 (연결 요청 응답)   
+    SYN = 0, ACK = 1 => 데이터 또는 ACK 패킷
     1. Client가 SYN = 1(set), Seq = 0 으로 Server에 connection을 request한다. 이때 ACK = 0, Header Length = 44 bytes (11), Length = 78 bytes.    
     2. Server에서 SYN = 1, Seq = 0 으로 Client에 수락을 보내준다. 이때 ACK = 1, Header Length = 40 bytes (10), Length = 74 bytes. 
-    3. Client가 SYN = 0(not set), Seq = 1을 Server에 보낸다. 이때 ACK = 1, Header Length = 32 bytes (8), Length = 66 bytes.     
+    3. Client가 SYN = 0(not set), Seq = 1을 Server에 보낸다. 이때 ACK = 1, Header Length = 32 bytes (8), Length = 66 bytes.        
+
+    4-way handshake 과정:     
+    1. Client가 연결을 종료하겠다는 FIN flag를 Server에 전송.    
+    2. Server에서는 FIN flag를 받고 일단 알겠다는 ACK 메세지를 Client에 보냄.  
+    3. Server에서 연결 종료가 되면 준비되었음을 알리기 위해 FIN flag를 Client에 보냄.     
+    4. Client에서 해지 준비가 되었다는 ACK 메세지를 Server에 보냄.
 
   * #### 각각의 패킷에 어떤 정보들이 담겨 있나요?    
-    __Scr port:__ client     
-    __Dst port:__ server       
+    __Scr port:__ 보내는 쪽     
+    __Dst port:__ 받는 쪽       
     __Seq:__ 순차번호, 최소로 전송될때 임의로 만들어 줌. 시퀀스 번호 덕분에, 수신자는 쪼개진 세그먼트의 순서를 파악하여 올바른 순서로 데이터를 재조립할수 있다. 순차번호는 패킷에 포함되어 있는 데이터 만큼 증가하게 된다.    
     __SYN:__ 접속요청. 1인 경우 Seq는 초기 순서 번호, 0인 경우 Seq는 Segment 순서 번호.      
     __ACK:__ 요청 수락 메세지, 연결 설정/해제 과정중에는 `상대방이 보낸 Seq 번호 + 1`. 실제 데이터를 주고 받을 때는 `상대방이 보낸 시퀀스 번호 + 자신이 받은 데이터의 bytes`. 만약에 Client에서 Segment Length = 100 byte, Seq = 1 의 패킷을 보냈다면, Server에서는 ACK = 100 + 1 = 101 을 보내야 한다.    
     __FIN:__ 송신 종료    
-
-    3-way handshake 과정중 SYN, ACK의 변화:   
-    SYN = 1, ACK = 0 => 연결 패킷 (연결 요청)      
-    SYN = 1, ACK = 1 => 연결 수신 통지 (연결 요청 응답)   
-    SYN = 0, ACK = 1 => 데이터 또는 ACK 패킷
 
 * ### telnet 명령을 통해 http://www.google.com/ URL에 HTTP 요청을 날려 보세요.
   ```
@@ -263,6 +285,3 @@
     __Transfer-Encoding:__ 사용자에게 엔티티를 안전하게 전송하기 위해 사용할 인코딩 형식을 지정     
 
     [MDN](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers)          
-
-
-
