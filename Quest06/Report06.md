@@ -103,17 +103,19 @@
           Server -> Client : [SYN ACK]을 TCP에 전달.     
           Client -> Server : TCP에서 [ACK] 를 전달. 요청이 수락됨.  
     `4.` Request: 서버에게 GET 명령 전송.    
-         GET /index.html HTTP/1.1               -> 요청문     
-         Host : www.daum.net                            	-> 헤더     
-         Body :                         -> (Get 요청이기 때문에 body가 없다)     
+         [요청메소드][URL][HTTP버전] 	            -> 요청문 헤더 시작     
+         [Header]: [Value]     
+         [Header]: [Value]     
+         ...     
+         [Header]: [Value]    
+         [Body]    	       	            	            	               
     `5.` Response: 서버가 client에게 웹 문서 회신.       
-         HTTP/1.1 200 OK					           -> 상태문   
-         Date: Thu, 12 Feb 2009 06:29:38 GMT 	            -> 헤더 시작     
-         Server: Apache/1.3.29 (Unix) PHP/4.3.4RC3     
-         X-Powered-By: PHP/4.3.4RC3     
-         Transfer-Encoding: chunked        
-         Content-Type: text/html				           -> 헤더 끝    
-         html 코드...      							          -> body      
+         [HTTP 버전][상태 드][상태 메세지]					           -> 상태문   
+         [Header]: [Value]     
+         [Header]: [Value]     
+         ...     
+         [Header]: [Value]    				           -> 헤더 끝    
+         [Body]      							              
     `6.` Close: 서버 - client 연결 해제. 4-way-handshake     
          Client -> Server : FIN     
 	       Server -> Client : ACK      
@@ -151,7 +153,7 @@
 ## Quest
 * ### tracert(Windows가 아닌 경우 traceroute) 명령을 통해 www.google.com 까지 가는 경로를 찾아 보세요.
   ```
-  traceroute www.google.com
+  ahjin@Jins-MacBook-Pro ~ % traceroute www.google.com
   traceroute to www.google.com (142.250.196.132), 64 hops max, 52 byte packets   
   1  192.168.200.254 (192.168.200.254)  5.073 ms  2.125 ms  2.298 ms
   2  1.222.161.1 (1.222.161.1)  8.805 ms  6.165 ms  6.224 ms
@@ -168,7 +170,7 @@
   ```
   
   * #### 어떤 IP주소들이 있나요? 그 IP주소들은 어디에 위치해 있나요?
-    192.168.200.254 - my router's address     
+    192.168.200.254 - my laptop's IP address     
     1.222.161.1 - public IP 주소, 사용자는 Seoul, 서울 특별시, 대한민국     
     49.142.20.237            
     111.118.20.169      
@@ -224,9 +226,9 @@
 
     4-way handshake 과정:     
     1. Client가 연결을 종료하겠다는 FIN flag를 Server에 전송.    
-    2. Server에서는 FIN flag를 받고 일단 알겠다는 ACK 메세지를 Client에 보냄.  
+    2. Server에서는 FIN flag를 받고 일단 알겠다는 ACK(client에서 받은 Seq+1) 메세지를 Client에 보냄.  
     3. Server에서 연결 종료가 되면 준비되었음을 알리기 위해 FIN flag를 Client에 보냄.     
-    4. Client에서 해지 준비가 되었다는 ACK 메세지를 Server에 보냄.
+    4. Client에서 해지 준비가 되었다는 ACK(Server에서 받은 Seq+1) 메세지를 Server에 보냄.
 
   * #### 각각의 패킷에 어떤 정보들이 담겨 있나요?    
     __Scr port:__ 보내는 쪽     
