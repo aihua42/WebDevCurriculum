@@ -2,60 +2,37 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>NotePad</title>
+		<title>New NotePad</title>
 		<link rel="stylesheet" href="./notepad.css">
 		<script src="./notepad.js"></script>
 	</head>
 	<body>
 		<!-- TODO: 이 곳을 채워 클라이언트를 만들어 보세요 -->
 		<header>
-			<div class="text-title">
-				<input class="title" type="text" placeholder="Untitled Text">
-			</div>
-			<div class="font-size">
-				<input class="font" type="number" min="1" max="50" value="16">
-			</div>
-			<div class="text-style">
-				<button class="bold" type="button">
-					<b>B</b>
-				</button>
-				<button class="italic" type="button">
-					<i>I</i>
-				</button>
-				<button class="underline" type="button">
-					<u>U</u>
-				</button>
-				<button class="strike" type="button">
-					<s>S</s>
-				</button>
-			</div>
-			<div class="text-color">
-				<button class="color" type="button">
-					<span>A</span>
-				</button>
-			</div>
 			<div class="interact">
-        <button class="newText" type="button">
-          <span>New Text</span>
-        </button>
-        <button class="open" type="button">
-          <span>Open</span>
-        </button>
-        <button class="save" type="button">
-          <span>Save</span>
-        </button>
-        <button class="saveAs" type="button">
-          <span>Save As</span>
-        </button>
-				<button class="close" type="button">
-          <span>Close</span>
-        </button>
+        <!-- 여기에 interaction buttons  -->
 			</div>
 		</header>
-		<textarea name="textArea" placeholder="Start your text here"></textarea>
+    <main class="notepad">
+      <div class="title-area">
+        <!-- 여기에 title tabs -->
+      </div>
+      <div class="text-area">
+        <!-- 여기에 text들 -->
+      </div>
+    </main>
 		<script>
-			let notepad = new Notepad();
-			
+
+			// interaction button names
+			let interactBtnNameList = ['New Text', 'Open Text', 'Rename', 'Save', 'Save As', 'Close Text'];
+
+			// notepad
+			let notepad = new Notepad('.title-area', '.text-area', '.interact', interactBtnNameList);
+
 		</script>
 	</body>
 </html>
+
+
+
+

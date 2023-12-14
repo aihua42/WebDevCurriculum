@@ -1,221 +1,335 @@
-// textarea
-// contenteditable
-
-// 생성자안에서 모든 걸 하면 안된다!!!!
-/* keys */
-const keysStyleButton = [
-  'bold', 'italic', 'underline', 'strike', 'color'
-];
-const keysInteractButton = [
-  'newText', 'open', 'save', 'saveAs', 'close'
-];
-
-/* Notepad */
 class Notepad {
 	/* TODO: 그 외에 또 어떤 클래스와 메소드가 정의되어야 할까요? */
-	fontSizer = null;
-	constructor() {
-    this.setSize();
-    this.setStyleButton();
-    this.setInteractButton();
+	constructor(titleParentSelector, textParentSelector, interactSelector, interactBtnNameList) {
+		this.titleParentSelector = titleParentSelector;
+		this.textParentSelector = textParentSelector;
+		this.interactSelector = interactSelector;
+		this.interactBtnNameList = interactBtnNameList;
+
+		this.btnOnclickFuncMap = new OnclickFuncMap(); 
+    this.textContainer = new TextContainer(this.titleParentSelector, this.textParentSelector);
+		this.interactBtnList = this.#createInteractBtnList();
 	}
-  // adjust font-size
-	// 객체가 만들어지고 변수형태로 저장되어야 되고 그걸 사용해야 한다.
-	// set 이라는 이름은 setting할때 쓴다
-	// setup is better
-  setSize() { 
-		// 참조하는게 있어야 한다. 안그러면 지워진다.
-		// 차라리 함수...
-    this.fontSizer = new fontSize(); //  FontSizer, 뭐하는 애인지 알수 있어야 한다.
-  }
-  // bold, italic, underline, strike, color buttons
-  setStyleButton() {
-    new StyleButton();
-  }
-  // newText, open, save, saveAs, close buttons
-  setInteractButton() {
-    new InteractButton();
-  }
-};
 
-/* font-sizing class */
-class fontSize {
-  constructor() {
-    this.textarea = document.querySelector('textarea');
-    this.inputSize = document.querySelector('.font');
-    this.setSize();
-  }
+	#createInteractBtnList() {
+		let interactBtnList = [];
+		this.interactBtnNameList.forEach((btnName) => {
+			let interactBtn = new ButtonEle(this.interactSelector, btnName);
 
-  setSize() { 
-    const textArea = this.textarea; 
-    const inputSize = this.inputSize;
-    inputSize.onclick = function() {
-      let value = inputSize.value;
-      textArea.style.fontSize = value + 'px';
-    }
-  }
+			let funcName = btnName.replace(' ', '');  // New Text => NewText
+			funcName = funcName[0].toLowerCase() + funcName.slice(1);  // NewText => newText
+      let onclickFunc = this.btnOnclickFuncMap[funcName];
+      
+      interactBtn.ele.onclick = () => onclickFunc(this.textContainer); 
+			interactBtnList.push(interactBtn);
+		});
+		return interactBtnList;
+	}
 }
 
-/* class for making buttons' object */
-class ButtonObj {
-  constructor(type) {
-    this.type = type;
-    this.obj = this.getObj();
-  }
+class TextTitle {
+	constructor(parentSelector) {
+		this.parentSelector = parentSelector;
 
-  getObj() { // 행위를 설명해줘야 한다. create/makeButtonGroup, get은 가져온다.
-    let keys = this.type === 'style' ? keysStyleButton : keysInteractButton; // styleButtonKeyList, interactButtonList / interactButtonKeys
-    let obj = {};  // buttonGroup
-    keys.forEach((key) => obj[key] = document.querySelector('.' + key));
-    return obj;
-  }
+		this.ele = this.#createTitleInputEle();
+		this.#appendInputEleTo();
+	}
+
+	getTitle() {
+		return this.ele.value;
+	}
+	setTitle(value) {
+		this.ele.value = value;
+	}
+
+	#createTitleInputEle() {
+		let inputEle = document.createElement('input');
+		inputEle.type = 'button';
+    inputEle.readOnly = true;
+		return inputEle;
+	}
+
+	#appendInputEleTo() { 
+		document.querySelector(this.parentSelector).appendChild(this.ele);
+	}
 }
 
-/* class for style buttons - bold, itaric, underline, strike, color */
-class StyleButton {
-  constructor() {
-    this.textarea = document.querySelector('textarea');
-    this.styleObj = new ButtonObj('style').obj; // 나중에 필요하면 obj를 넣는 형식으로~, style이라는 정보는 사라지게 된다.
-		//   .type .obj = 
-    this.setStyleButton();
-  }
+class TextArea {
+	constructor(parentSelector, readOnly = false) {
+		this.parentSelector = parentSelector;
+    this.readOnly = readOnly;
 
-  setStyleButton() {
-    function activeClassName(className) {
-      return 'active' + className[0].toUpperCase() + className.slice(1);
-    }
+		this.ele = this.#createTextareaEle();
+		this.#appendTextareaTo();
+	}
 
-    keysStyleButton.forEach((key) => {
-      const button = this.styleObj[key]; 
-      const className = activeClassName(key); 
-      button.onclick = () => this.textarea.classList.toggle(className);
-    });
-  }
+	getText() {
+		return this.ele.value;
+	}
+	setText(value) {
+		this.ele.value = value;
+	}
+
+	#createTextareaEle() {
+		let textareaEle = document.createElement('textarea');
+    textareaEle.readOnly = this.readOnly;
+		textareaEle.placeholder = this.readOnly ? '' : "Start your text here";
+		return textareaEle;
+	}
+
+	#appendTextareaTo() {  
+		document.querySelector(this.parentSelector).appendChild(this.ele);
+	}
 }
 
-class Open {
-  constructor(title) {
-    title = prompt('Please input the title:', '');
-    this.title = title;
-    this.text = localStorage.getItem(title);
-    this.open();
+class TextContainer {
+  constructor(titleParentSelector, textParentSelector) {
+    this.titleParentSelector = titleParentSelector;
+    this.textParentSelector = textParentSelector;
+
+    this.#createWelcomeArea();
   }
 
-  open() {
-		if (this.title === null) {
-			return;
-		} else if (this.text === null) {
-      alert(`File Doesn't exist!`);
+  #createWelcomeArea() {
+    let welcomePage = new TextArea(this.textParentSelector, true);
+    welcomePage.ele.style.fontSize = '20px';
+    let value = `\n\n    Welcome!\n\n    Please click 'New Text' button to start your new text!`;
+    welcomePage.setText(value);
+    welcomePage.ele.classList.add('visible');
+    welcomePage.ele.id = 'welcome';
+
+    this.titleMap = { welcomePage: null };
+    this.textMap = { welcomePage: welcomePage };
+    this.titleShown = 'welcomePage';
+  }
+
+  isWelcomePage(textObj) {
+    let textArea = Object.values(textObj)[0];
+    if (textArea.ele.id === 'welcome') {
+      return true;
     } else {
-      new Window(this.title, this.text);
+      return false;
     }
   }
-}
 
-class Save {
-  constructor() {
-    this.title = document.querySelector('.title').value;
-    this.text = document.querySelector('textarea').value;
-    this.save();
+  getVisibleTextObj() {
+    let title = Object.keys(this.textMap).filter((title) => this.textMap[title].ele.className.indexOf('visible') > -1)[0];
+    let result = {};
+    result[title] = this.textMap[title];
+    return result;
   }
 
-  save() {
-    if (this.title === '' || this.title === null) {
-      alert('Title must be filled!');
-    } else if (!localStorage.getItem(this.title) 
-           || confirm('File already exists. Do you want to overwrite?')) {
-      localStorage.setItem(this.title, this.text);
-      alert("Successfully saved!");
-    }
-  }
-}
+  add(title, text='') {
+    let textTitle = new TextTitle(this.titleParentSelector); 
+    let textArea = new TextArea(this.textParentSelector);
+    textTitle.setTitle(title);
+    textArea.setText(text);
+    
+    let titleMap = this.titleMap;
+    let textMap = this.textMap;
+    titleMap[title] = textTitle;
+    textMap[title] = textArea;
 
-class SaveAs {
-  constructor(newTitle) {
-    newTitle = prompt('Save as:', '');
-    while (newTitle === '' || localStorage.getItem(newTitle)) {
-      newTitle = newTitle === '' ? prompt(`Title shouldn't be empty!`, '') : prompt(`"${newTitle}" already exists!`, '');
-    } 
-    this.newTitle = newTitle; 
-    this.text = document.querySelector('textarea').value;
-    this.saveAs();
-  }
+    this.titleMap = titleMap;
+    this.textMap = textMap;
+    this.titleShown = title;
 
-  saveAs() {
-    if (this.newTitle !== null) {
-      localStorage.setItem(this.newTitle, this.text);
-      alert("Successfully saved!");
-    }
-  }
-}
+    this.showTarget(this.titleMap, this.textMap, this.titleShown);
 
-// onbeforeunload 으로 시도해보다가 실패
-class Close {
-  constructor() {
-    this.title = document.querySelector('.title').value;
-    this.text = document.querySelector('textarea').value;
-    this.close();
+    textTitle.ele.onclick = () => {
+      this.titleShown = textTitle.getTitle();
+      this.showTarget(this.titleMap, this.textMap, this.titleShown);
+    };
   }
 
-  close() {
-    if ((this.title === '' && this.text === '')
-        || confirm('Do you wanna leave without save?')) {
-      window.close();
-    }
-  }
-}
+  remove(title) {
+    let titleMap = this.titleMap; 
+    let textMap = this.textMap;
 
-/* class for interaction buttons - Open, Save, Save As, Close */
-class InteractButton {
-  constructor() {
-    this.interactObj = new ButtonObj('interact').obj;
-    this.setInteractButton();
+    let idx = Object.keys(titleMap).indexOf(title);
+
+    titleMap[title].ele.remove();
+    textMap[title].ele.remove();
+    delete titleMap[title];
+    delete textMap[title];  
+
+    this.titleMap = titleMap;
+    this.textMap = textMap;
+    this.titleShown = Object.keys(this.titleMap)[idx-1];
+
+    this.showTarget(this.titleMap, this.textMap, this.titleShown);
   }
 
-  setInteractButton() {
-    keysInteractButton.forEach((key) => {
-      const button = this.interactObj[key]; 
-      button.onclick = interactFuncObj[key];
+  showTarget(titleMap, textMap, titleShown) {
+    Object.keys(titleMap).forEach((title) => { 
+      if (titleMap[title]) { 
+        titleMap[title].ele.classList.toggle('visible', title === titleShown);
+      }
+      if (textMap[title]) {
+        textMap[title].ele.classList.toggle('visible', title === titleShown);
+      }
     });
   }
 }
 
-/* interaction functions' object */
-const interactFuncObj = {};
-interactFuncObj['newText'] = () => new Window();
-interactFuncObj['open'] = () => new Open();
-interactFuncObj['save'] = () => new Save();
-interactFuncObj['saveAs'] = () => new SaveAs();
-interactFuncObj['close'] = () => new Close();
-
-/* 새창 */
-class Window {
-  constructor(title='', text='') {
-    this.title = title;
-    this.text = text;
-
-    const win = window.open('http://127.0.0.1:5500/Quest05/skeleton/index.html', '_blank', 'resizable=no');
-		this.parentWin = win.opener;
-
-		win.document.body.parentElement.innerHTML = this.makeHTML();
-		//win.document.querySelector('.title').outerHTML = `<input class="title" type="text" placeholder="Untitled Text" value="${this.title}">`;
-		win.document.querySelector('.title').value = this.title;
-		win.document.querySelector('textarea').value = this.text;
-    this.win = win;     
+class SpanEle {
+  constructor(innerText) {
+    this.innerText = innerText;
+    this.ele = this.#createSpanEle();
   }
 
-	makeHTML() {
-		let html = this.parentWin.document.body.parentElement.innerHTML.split('<!-- Code injected by live-server -->')[0];
-		html += '</body>';
-		html = '<html>\n' + html + '\n</html>';
-		html = '<!DOCTYPE html>\n' + html;
-		return html;
+  #createSpanEle() {
+    let span = document.createElement('span');
+    span.innerText = this.innerText;
+    return span;
+  }
+}
+
+class ButtonEle {
+	constructor (parentSelector, spanInnerText) {
+		this.parentSelector = parentSelector;
+		this.spanInnerText = spanInnerText;
+
+		this.ele = this.#createBtnEle();
+		this.#appendBtnEleTo();
+	}
+
+	#createBtnEle() {
+		let buttonEle = document.createElement('button');
+		let span = new SpanEle(this.spanInnerText);
+		buttonEle.appendChild(span.ele);
+		buttonEle.type = 'button';
+		return buttonEle;
+	}
+
+	#appendBtnEleTo() {
+		document.querySelector(this.parentSelector).appendChild(this.ele);
 	}
 }
 
+class OnclickFuncMap {
+	constructor() {  
 
+	}
 
+  newText(textContainer) { 
+    let title = prompt('Please input the title:', '');
+    if (title === null) {
+      return;
+    }
+    while (localStorage.getItem(title)) {
+      title = prompt('Title already exists in the local storage!', '');
+      if (title === null) {
+        return;
+      }
+    }
+    if (title) {
+      textContainer.add(title);
+    }
+	}
 
+	openText(textContainer) {
+		let title = prompt('Please input the title:', '');
+		if (title === null) {
+			return;
+		} 
 
+    while (localStorage.getItem(title) === null) {
+      title = prompt('Text does NOT exists in the local storage!', '');
+      if (title === null) {
+        return;
+      }
+    }
 
+    let text = localStorage.getItem(title);
+    textContainer.add(title, text);
+	}
 
+  rename(textContainer) {
+    let visibleTextObj = textContainer.getVisibleTextObj();  
+    if (textContainer.isWelcomePage(visibleTextObj)) {
+      return;
+    }
+
+    let newTitle = prompt('Rename the text:', '');
+    while (newTitle === '') {
+      newTitle = prompt('Title should NOT be empty!', '');
+      if (newTitle === null) {
+        return;
+      }
+    }
+
+    while (localStorage.getItem(newTitle)) {
+			newTitle = prompt('Title already exists in the local storage!', '');
+      if (newTitle === null) {
+        return;
+      }
+		}
+
+    let title = Object.keys(visibleTextObj)[0]; 
+    let textTitle = textContainer.titleMap[title];
+    textTitle.setTitle(newTitle);
+
+    let text = localStorage.getItem(title);
+    if (text) { 
+      localStorage.removeItem(title);
+      localStorage.setItem(newTitle, text);
+    }
+  }
+
+	save(textContainer) {
+    let visibleTextObj = textContainer.getVisibleTextObj();  
+    if (textContainer.isWelcomePage(visibleTextObj)) {
+      return;
+    }
+
+		let title = Object.keys(visibleTextObj)[0]; 
+		let text = Object.values(visibleTextObj)[0].getText();
+
+    if (localStorage.getItem(title)) {
+			alert('Title already exists in the local storage!', '');
+		} else {
+      localStorage.setItem(title, text);
+      alert("Successfully saved!");
+    }
+	}
+
+	saveAs(textContainer) {
+    let visibleTextObj = textContainer.getVisibleTextObj(); 
+    if (textContainer.isWelcomePage(visibleTextObj)) {
+      return;
+    }
+
+		let newTitle = prompt('Save as:', '');
+    while (newTitle === '') {
+      newTitle = prompt(`Title shouldn't be empty!`, '');
+      if (newTitle === null) {
+        return;
+      }
+    }
+
+		while (localStorage.getItem(newTitle)) {
+			newTitle = prompt('Title already exists in the local storage!', '');
+      if (newTitle === null) {
+        return;
+      }
+		}
+
+		let text = Object.values(visibleTextObj)[0].getText();
+		localStorage.setItem(newTitle, text);
+		alert("Successfully saved!");
+	}
+
+	closeText(textContainer) {
+    let visibleTextObj = textContainer.getVisibleTextObj();
+    if (textContainer.isWelcomePage(visibleTextObj)) {
+      return;
+    }
+
+    let title = Object.keys(visibleTextObj)[0];
+    let text = Object.values(visibleTextObj)[0].getText();
+		if (text === localStorage.getItem(title) || confirm('Do you wanna leave without save?')) {
+			textContainer.remove(title);
+		}
+	}
+}
