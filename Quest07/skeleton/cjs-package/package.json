@@ -1,3 +1,4 @@
 {
-    "name": "cjs-package"
+    "name": "cjs-package",
+    "type": "module"
 }
