@@ -19,10 +19,6 @@ body {
 	align-items: center;
 }
 
-div {
-	display: inline-block;
-}
-
 header {
 	width: 1065px;
 	height: 70px;
@@ -32,11 +28,35 @@ header {
   align-items: top;
 }
 
+div {
+	display: inline-block;
+}
+
 main {
   display: flex;
   justify-content: center;
   align-items: flex-start;
   gap: 10px;
+}
+
+.interact {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+.interact button {
+	width: 100%;
+	text-wrap: nowrap;
+	border: none;
+	outline: none;
+	padding-left: 5px;
+	padding-right: 5px;
+	font-size: 16px;
+	box-shadow: rgb(226, 169, 94) 0px 5px 15px;
+	border-radius: 4px;
+	height: 30px;
+	text-align: center;
+	cursor: pointer;
 }
 
 .title-area {
@@ -47,10 +67,11 @@ main {
   justify-content: flex-start;
   gap: 10px;
 }
-
+.title-area div {
+	position: relative;
+	margin-right: 5px;
+}
 input {
-  margin-right: 5px;
-  box-shadow: rgb(226, 169, 94) 0px 5px 15px;
   cursor: pointer;
 }
 input[type] {
@@ -60,24 +81,25 @@ input[type] {
   text-align: left;
 	font-size: 16px;
 	border: none;
-  background-color: rgb(226, 169, 94) 0px 5px 15px;
 	box-shadow: rgb(226, 169, 94) 0px 5px 15px;
 	border-radius: 4px;
 }
-
-button {
-	text-wrap: nowrap;
-	border: none;
-	outline: none;
-	padding-left: 5px;
-	padding-right: 5px;
-	font-size: 16px;
-	box-shadow: rgb(226, 169, 94) 0px 5px 15px;
+.title-area button {
+	padding: 2px 6px;
+	margin-right: 6px;
+	position: absolute;
+	top: 8px;
+	right: 0;
+	border-color: rgb(240, 229, 215); 
 	border-radius: 4px;
-	height: 30px;
-	width: 30px;
-	text-align: center;
+}
+.title-area button:hover {
+	color: rgb(240, 229, 215);
+	border-color: rgb(231, 158, 63);
 	cursor: pointer;
+}
+.title-area span {
+	color: rgb(230, 136, 13);
 }
 
 textarea {
@@ -98,16 +120,7 @@ textarea::placeholder {
 	color: rgb(165, 165, 165);
 }
 
-.interact {
-	display: flex;
-	justify-content: flex-end;
-	gap: 10px;
-}
-.interact button {
-	width: 100%;
-}
-
-.title-area .visible {
+.title-area .visible input {
   background-color: rgb(240, 229, 215);
 }
 

@@ -12,13 +12,13 @@ class Notepad {
 	}
 
 	#createInteractBtnList() {
-		let interactBtnList = [];
+		const interactBtnList = [];
 		this.interactBtnNameList.forEach((btnName) => {
-			let interactBtn = new ButtonEle(this.interactSelector, btnName);
+			const interactBtn = new ButtonEle(this.interactSelector, btnName);
 
 			let funcName = btnName.replace(' ', '');  // New Text => NewText
 			funcName = funcName[0].toLowerCase() + funcName.slice(1);  // NewText => newText
-      let onclickFunc = this.btnOnclickFuncMap[funcName];
+      const onclickFunc = this.btnOnclickFuncMap[funcName];
       
       interactBtn.ele.onclick = () => onclickFunc(this.textContainer); 
 			interactBtnList.push(interactBtn);
@@ -31,23 +31,39 @@ class TextTitle {
 	constructor(parentSelector) {
 		this.parentSelector = parentSelector;
 
-		this.ele = this.#createTitleInputEle();
+    this.inputEle = this.#createTitleInputEle();
+    this.btnEle = this.#createTitleBtnEle();
+		this.ele = this.#createTitleInputContainer();
 		this.#appendInputEleTo();
 	}
 
 	getTitle() {
-		return this.ele.value;
+		return this.inputEle.value;
 	}
 	setTitle(value) {
-		this.ele.value = value;
+		this.inputEle.value = value;
 	}
 
 	#createTitleInputEle() {
-		let inputEle = document.createElement('input');
+		const inputEle = document.createElement('input');
 		inputEle.type = 'button';
     inputEle.readOnly = true;
 		return inputEle;
 	}
+
+  #createTitleBtnEle() {
+    const btnEle = document.createElement('button');
+    const spanEle = document.createElement('span');
+    spanEle.innerText = 'x';
+    btnEle.appendChild(spanEle);
+    return btnEle;
+  }
+
+  #createTitleInputContainer() {
+    const divEle = document.createElement('div');
+    divEle.append(this.inputEle, this.btnEle);
+    return divEle;
+  }
 
 	#appendInputEleTo() { 
 		document.querySelector(this.parentSelector).appendChild(this.ele);
@@ -71,7 +87,7 @@ class TextArea {
 	}
 
 	#createTextareaEle() {
-		let textareaEle = document.createElement('textarea');
+		const textareaEle = document.createElement('textarea');
     textareaEle.readOnly = this.readOnly;
 		textareaEle.placeholder = this.readOnly ? '' : "Start your text here";
 		return textareaEle;
@@ -91,20 +107,21 @@ class TextContainer {
   }
 
   #createWelcomeArea() {
-    let welcomePage = new TextArea(this.textParentSelector, true);
+    const welcomePage = new TextArea(this.textParentSelector, true);
     welcomePage.ele.style.fontSize = '20px';
-    let value = `\n\n    Welcome!\n\n    Please click 'New Text' button to start your new text!`;
+    const value = `\n\n    Welcome!\n\n    Please click 'New Text' button to start your new text!`;
     welcomePage.setText(value);
     welcomePage.ele.classList.add('visible');
     welcomePage.ele.id = 'welcome';
 
     this.titleMap = { welcomePage: null };
     this.textMap = { welcomePage: welcomePage };
+    this.interactNameMap = { welcomePage: null } // newText, openText, Rename, save, saveAs, DeleteText
     this.titleShown = 'welcomePage';
   }
 
   isWelcomePage(textObj) {
-    let textArea = Object.values(textObj)[0];
+    const textArea = Object.values(textObj)[0];
     if (textArea.ele.id === 'welcome') {
       return true;
     } else {
@@ -113,56 +130,65 @@ class TextContainer {
   }
 
   getVisibleTextObj() {
-    let title = Object.keys(this.textMap).filter((title) => this.textMap[title].ele.className.indexOf('visible') > -1)[0];
-    let result = {};
+    const title = Object.keys(this.textMap).filter((title) => this.textMap[title].ele.className.indexOf('visible') > -1)[0];
+    const result = {};
     result[title] = this.textMap[title];
     return result;
   }
 
-  add(title, text='') {
-    let textTitle = new TextTitle(this.titleParentSelector); 
-    let textArea = new TextArea(this.textParentSelector);
+  addMapKeyVal(mapType, key, value) {
+    const map = this[mapType]; 
+    map[key] = value;
+    this[mapType] = map;
+  }
+
+  add(title, text, interactName) { 
+    const textTitle = new TextTitle(this.titleParentSelector); 
+    const textArea = new TextArea(this.textParentSelector);
     textTitle.setTitle(title);
     textArea.setText(text);
-    
-    let titleMap = this.titleMap;
-    let textMap = this.textMap;
-    titleMap[title] = textTitle;
-    textMap[title] = textArea;
 
-    this.titleMap = titleMap;
-    this.textMap = textMap;
+    this.addMapKeyVal('titleMap', title, textTitle);
+    this.addMapKeyVal('textMap', title, textArea);
+    this.addMapKeyVal('interactNameMap', title, interactName);
     this.titleShown = title;
 
     this.showTarget(this.titleMap, this.textMap, this.titleShown);
 
-    textTitle.ele.onclick = () => {
+    textTitle.ele.onclick = () => {  
       this.titleShown = textTitle.getTitle();
       this.showTarget(this.titleMap, this.textMap, this.titleShown);
     };
+
+    this.#makeXBtnClickable(textTitle, textArea);
   }
 
-  remove(title) {
-    let titleMap = this.titleMap; 
-    let textMap = this.textMap;
+  removeMapKeyVal(mapType, key) {
+    const map = this[mapType];  
+    if (mapType !== 'interactNameMap') {
+      map[key].ele.remove();
+    }
+    delete map[key];
+    this[mapType] = map;
+  }
 
-    let idx = Object.keys(titleMap).indexOf(title);
-
-    titleMap[title].ele.remove();
-    textMap[title].ele.remove();
-    delete titleMap[title];
-    delete textMap[title];  
-
-    this.titleMap = titleMap;
-    this.textMap = textMap;
-    this.titleShown = Object.keys(this.titleMap)[idx-1];
-
+  remove(title) {     
+    const idx = Object.keys(this.titleMap).indexOf(title); 
+    
+    this.removeMapKeyVal('titleMap', title);
+    this.removeMapKeyVal('textMap', title);
+    this.removeMapKeyVal('interactNameMap', title);
+    
+    if (title === this.titleShown) {
+      this.titleShown = Object.keys(this.titleMap)[idx-1];
+    }
+   
     this.showTarget(this.titleMap, this.textMap, this.titleShown);
   }
 
   showTarget(titleMap, textMap, titleShown) {
-    Object.keys(titleMap).forEach((title) => { 
-      if (titleMap[title]) { 
+    Object.keys(titleMap).forEach((title) => {  
+      if (titleMap[title]) {  
         titleMap[title].ele.classList.toggle('visible', title === titleShown);
       }
       if (textMap[title]) {
@@ -170,18 +196,22 @@ class TextContainer {
       }
     });
   }
-}
 
-class SpanEle {
-  constructor(innerText) {
-    this.innerText = innerText;
-    this.ele = this.#createSpanEle();
-  }
+  #makeXBtnClickable(textTitle, textArea) { 
+    const title = textTitle.getTitle();
+    if (title === 'welcomePage') {
+      return;
+    }
 
-  #createSpanEle() {
-    let span = document.createElement('span');
-    span.innerText = this.innerText;
-    return span;
+    const xBtn = textTitle.btnEle; 
+    xBtn.onclick = (event) => {
+      event.stopPropagation();
+      //event.stopImmediatePropagation();
+      const text = textArea.getText();
+      if (text === localStorage.getItem(title) || confirm('Do you wanna leave without save?')) { 
+        this.remove(title);
+      }
+    };
   }
 }
 
@@ -195,9 +225,11 @@ class ButtonEle {
 	}
 
 	#createBtnEle() {
-		let buttonEle = document.createElement('button');
-		let span = new SpanEle(this.spanInnerText);
-		buttonEle.appendChild(span.ele);
+    const span = document.createElement('span');
+    span.innerText = this.spanInnerText;
+
+		const buttonEle = document.createElement('button');
+		buttonEle.appendChild(span);
 		buttonEle.type = 'button';
 		return buttonEle;
 	}
@@ -208,9 +240,7 @@ class ButtonEle {
 }
 
 class OnclickFuncMap {
-	constructor() {  
-
-	}
+	constructor() {}
 
   newText(textContainer) { 
     let title = prompt('Please input the title:', '');
@@ -224,7 +254,7 @@ class OnclickFuncMap {
       }
     }
     if (title) {
-      textContainer.add(title);
+      textContainer.add(title, '', 'newText');
     }
 	}
 
@@ -241,12 +271,12 @@ class OnclickFuncMap {
       }
     }
 
-    let text = localStorage.getItem(title);
-    textContainer.add(title, text);
+    const text = localStorage.getItem(title);
+    textContainer.add(title, text, 'openText');
 	}
 
   rename(textContainer) {
-    let visibleTextObj = textContainer.getVisibleTextObj();  
+    const visibleTextObj = textContainer.getVisibleTextObj();  
     if (textContainer.isWelcomePage(visibleTextObj)) {
       return;
     }
@@ -266,27 +296,32 @@ class OnclickFuncMap {
       }
 		}
 
-    let title = Object.keys(visibleTextObj)[0]; 
-    let textTitle = textContainer.titleMap[title];
+    const title = Object.keys(visibleTextObj)[0]; 
+    const textTitle = textContainer.titleMap[title];
     textTitle.setTitle(newTitle);
 
-    let text = localStorage.getItem(title);
-    if (text) { 
+    textContainer.removeMapKeyVal('interactNameMap', title);
+
+    const text = localStorage.getItem(title);
+    if (text !== null) {   // 이미 저장되어 있는 파일
       localStorage.removeItem(title);
       localStorage.setItem(newTitle, text);
+      textContainer.addMapKeyVal('interactNameMap', newTitle, 'openText'); // update localStorage when save
+    } else {
+      textContainer.addMapKeyVal('interactNameMap', newTitle, 'newText'); // add to localStorage when save
     }
   }
 
 	save(textContainer) {
-    let visibleTextObj = textContainer.getVisibleTextObj();  
+    const visibleTextObj = textContainer.getVisibleTextObj();  
     if (textContainer.isWelcomePage(visibleTextObj)) {
       return;
     }
 
-		let title = Object.keys(visibleTextObj)[0]; 
-		let text = Object.values(visibleTextObj)[0].getText();
+		const title = Object.keys(visibleTextObj)[0]; 
+		const text = Object.values(visibleTextObj)[0].getText();
 
-    if (localStorage.getItem(title)) {
+    if (textContainer.interactNameMap[title] === 'newText' && localStorage.getItem(title)) {
 			alert('Title already exists in the local storage!', '');
 		} else {
       localStorage.setItem(title, text);
@@ -295,7 +330,7 @@ class OnclickFuncMap {
 	}
 
 	saveAs(textContainer) {
-    let visibleTextObj = textContainer.getVisibleTextObj(); 
+    const visibleTextObj = textContainer.getVisibleTextObj(); 
     if (textContainer.isWelcomePage(visibleTextObj)) {
       return;
     }
@@ -315,21 +350,21 @@ class OnclickFuncMap {
       }
 		}
 
-		let text = Object.values(visibleTextObj)[0].getText();
+		const text = Object.values(visibleTextObj)[0].getText();
 		localStorage.setItem(newTitle, text);
 		alert("Successfully saved!");
 	}
 
-	closeText(textContainer) {
-    let visibleTextObj = textContainer.getVisibleTextObj();
+  deleteText(textContainer) {
+    const visibleTextObj = textContainer.getVisibleTextObj();
     if (textContainer.isWelcomePage(visibleTextObj)) {
       return;
     }
 
-    let title = Object.keys(visibleTextObj)[0];
-    let text = Object.values(visibleTextObj)[0].getText();
-		if (text === localStorage.getItem(title) || confirm('Do you wanna leave without save?')) {
-			textContainer.remove(title);
-		}
-	}
+    const title = Object.keys(visibleTextObj)[0];
+    textContainer.remove(title);
+    localStorage.removeItem(title);
+    textContainer.remove(title);
+    alert("Text is deleted!");
+  }
 }
