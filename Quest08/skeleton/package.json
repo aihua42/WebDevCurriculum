@@ -1,3 +1,6 @@
 {
-    "name": "quest08"
+    "name": "quest08",
+    "scripts": {
+        "quest08": "nodemon server.mjs"
+    }
 }
