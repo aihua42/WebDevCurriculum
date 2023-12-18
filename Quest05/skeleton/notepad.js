@@ -206,7 +206,6 @@ class TextContainer {
     const xBtn = textTitle.btnEle; 
     xBtn.onclick = (event) => {
       event.stopPropagation();
-      //event.stopImmediatePropagation();
       const text = textArea.getText();
       if (text === localStorage.getItem(title) || confirm('Do you wanna leave without save?')) { 
         this.remove(title);
@@ -258,7 +257,7 @@ class OnclickFuncMap {
     }
 	}
 
-	openText(textContainer) {
+	open(textContainer) {
 		let title = prompt('Please input the title:', '');
 		if (title === null) {
 			return;
@@ -355,7 +354,7 @@ class OnclickFuncMap {
 		alert("Successfully saved!");
 	}
 
-  deleteText(textContainer) {
+  delete(textContainer) {
     const visibleTextObj = textContainer.getVisibleTextObj();
     if (textContainer.isWelcomePage(visibleTextObj)) {
       return;
@@ -364,7 +363,6 @@ class OnclickFuncMap {
     const title = Object.keys(visibleTextObj)[0];
     textContainer.remove(title);
     localStorage.removeItem(title);
-    textContainer.remove(title);
     alert("Text is deleted!");
   }
 }
