@@ -129,7 +129,7 @@ const server = http.createServer((req, res) => {
         } else {
             let data = '';
             req.on('data', (chunk) => {
-                data += chunk;
+                data += chunk.toString();
             });
 
             // JSON 데이터가 완전히 수신된 후에 데이터를 구문 분석
@@ -160,7 +160,7 @@ const server = http.createServer((req, res) => {
     function handlePOSTUploadRaw() {
         let imageData = '';
         req.on('data', (chunk) => {
-            imageData += chunk.toString('binary');  // 꼭 binary!!!
+            imageData += chunk.toString('binary');  // 꼭 binary!!! Buffer.toString(default: 'utf8')
         });
         
         req.on('end', () => { 
