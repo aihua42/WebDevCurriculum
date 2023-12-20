@@ -103,8 +103,9 @@ class TextContainer {
     this.textParentSelector = textParentSelector;
 
     this.#createWelcomeText();
+    this.count = 0;
   }
-
+ 
   #createWelcomeText() {
     const welcomeText = new TextArea(this.textParentSelector, true);
     welcomeText.ele.style.fontSize = '20px';
@@ -179,15 +180,15 @@ class TextContainer {
   remove(title) {     
     const idx = Object.keys(this.titleMap).indexOf(title); 
     
-    this.mapDeleteKeyVal('titleMap', title);
-    this.mapDeleteKeyVal('textMap', title);
+    this.mapRemoveKeyVal('titleMap', title);
+    this.mapRemoveKeyVal('textMap', title);
     
     if (title === this.activeTitle) {
-      this.showTarget(Object.keys(this.titleMap)[idx-1]);
+      this.showTarget(Object.keys(this.titleMap)[idx === 0 ? idx : idx-1]);
     }
   }
 
-  mapDeleteKeyVal(mapType, key) {
+  mapRemoveKeyVal(mapType, key) {
     const map = this[mapType];  
     map[key].ele.remove();
     delete map[key];
@@ -242,8 +243,8 @@ const onclickFuncMap = {
       return;
     }
 
-    const text = await fetchGet(title);  
-    if (text !== null) {
+    const text = await fetchGet(title); 
+    if (text !== null) { 
       alert('Title already exists in the system!');
       return;
     }
@@ -262,16 +263,16 @@ const onclickFuncMap = {
       return;
     }
 
-    const text = await fetchGet(title);  
-    if (text !== null) {
-      textContainer.add(title, text, null);
+    const text = await fetchGet(title);   
+    if (text !== null) {  
+      textContainer.add(title, text);
     } else {
       alert('Text NOT found!');
     }
 	},
 
   async rename(textContainer) {
-    const activeTextObj = textContainer.getActiveTextObj(); // { strOfTitle: instance of TextArea }
+    const activeTextObj = textContainer.getActiveTextObj(); // { title of text: instance of TextArea }
     if (textContainer.isWelcomeText(activeTextObj)) {
       return;
     }
@@ -321,6 +322,7 @@ const onclickFuncMap = {
       alert('Already saved!');
     } else {
       fetchPatch('text', textSaved, text);  // update the text
+      alert('Successfully saved!');
     } 
 	},
 
@@ -341,6 +343,7 @@ const onclickFuncMap = {
       return;
     }
 
+    
 		const text = Object.values(activeTextObj)[0].getText();
     fetchPost(newTitle, text);
 	},
@@ -359,24 +362,28 @@ const onclickFuncMap = {
 
 // fetch functions
 async function fetchGet(title) {
-  const url = 'http://localhost:8000/texts/' + title;
+  const id = trasformStr(title);
+  const url = 'http://localhost:8000/text/' + id;
   
   try {
     const res = await fetch(url);  
-    if (!res.ok) {
+    if (res.status === 204) {
       return null;
-    } else {
+    } else if (res.ok) {
       const data = await res.text();
       return data;
+    } else {
+      console.error('Unexpected error:', res.status);
     }
   } catch(err) {  
-    return null;
+    console.error('Error:', err.message);
   }
 }
 
 function fetchPost(title, text) {
-  const url = 'http://localhost:8000/texts';
-  const data = { title, text };
+  const url = 'http://localhost:8000/text';
+  const id = trasformStr(title);
+  const data = { id, title, text };
  
   fetch(url, {
     method: 'POST',
@@ -398,9 +405,11 @@ function fetchPost(title, text) {
 }
 
 async function fetchPatch(key, preVal, newVal) {
-  const url = 'http://localhost:8000/texts/' + preVal;
-  const updatedData = {};
-  updatedData[key] = newVal;
+  const url = 'http://localhost:8000/text/' + key;
+  const updatedData = {
+    before: preVal,
+    after: newVal
+  };
 
   try {
     const res = await fetch(url, {
@@ -422,7 +431,8 @@ async function fetchPatch(key, preVal, newVal) {
 }
 
 function fetchDelete(title) {
-  const url = 'http://localhost:8000/texts/' + title;
+  const id = trasformStr(title);
+  const url = 'http://localhost:8000/text/' + id;
   
   fetch(url, {
     method: 'DELETE'
@@ -433,4 +443,8 @@ function fetchDelete(title) {
     }  
   })
   .catch((err) => {});
+}
+
+function trasformStr(str) {
+  return str.replaceAll(' ', '-').toLowerCase();
 }
