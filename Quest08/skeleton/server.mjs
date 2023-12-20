@@ -48,9 +48,12 @@ const server = http.createServer((req, res) => {
     // /foo
     function handleGETFoo() {
         const barVal = searchParams.get('bar');
-        
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(`<h1>Hello, ${barVal}</h1>`);
+        if (barVal === null) {
+            handleError(404, 'Not Found', err);
+        } else {
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end(`<h1>Hello, ${barVal}</h1>`);
+        }
     }
 
     // /pic/show
@@ -148,7 +151,7 @@ const server = http.createServer((req, res) => {
     // /pic/upload
     function handlePOSTUpload(contentType) {
         if (contentType === 'image/jpeg') {
-            handlePOSTUploadRaw();
+            handlePOSTUploadBinary();
         } else if (contentType.startsWith('multipart/form-data')) {
             handlePOSTUploadFormData(contentType);
         } else {
@@ -157,7 +160,7 @@ const server = http.createServer((req, res) => {
     }
 
     // raw of /pic/upload
-    function handlePOSTUploadRaw() {
+    function handlePOSTUploadBinary() {
         let imageData = '';
         req.on('data', (chunk) => {
             imageData += chunk.toString('binary');  // 꼭 binary!!! Buffer.toString(default: 'utf8')
