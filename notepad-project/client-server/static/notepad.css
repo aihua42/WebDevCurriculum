@@ -58,6 +58,10 @@ main {
 	text-align: center;
 	cursor: pointer;
 }
+.interact button:hover,
+.interact button:hover span {
+	background-color: rgb(240, 229, 215);
+}
 
 .title-area {
   width: 155px;
@@ -88,23 +92,27 @@ input[type] {
 	padding: 2px 6px;
 	margin-right: 6px;
 	position: absolute;
-	top: 8px;
+	top: 10px;
 	right: 0;
-	border-color: rgb(240, 229, 215); 
+	background-color: rgb(241, 216, 182);
+	/*border-color: rgb(240, 229, 215); */
+	border: none;
 	border-radius: 4px;
-}
-.title-area button:hover {
-	color: rgb(240, 229, 215);
-	border-color: rgb(231, 158, 63);
-	cursor: pointer;
 }
 .title-area span {
 	color: rgb(230, 136, 13);
+	background-color: rgb(241, 216, 182);
+}
+.title-area button:hover,
+.title-area button:hover span {
+	color: rgb(240, 229, 215);
+	background-color: rgb(226, 169, 94);
+	cursor: pointer;
 }
 
 textarea {
   display: none;
-	height: 700px;
+	height: 600px;
 	width: 900px;
 	border-radius: 4px;
   font-size: 16px;

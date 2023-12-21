@@ -9,9 +9,7 @@ app.set('port', 8000);
 
 // middlewares
 app.use(morgan('dev'));
-app.use(cors({
-  origin: 'http://localhost:3000/'
-}));
+app.use(cors());
 app.use(express.json());
 
 // call textList from server directory or make an empty one
@@ -32,19 +30,18 @@ async function save(textList) {
   }
 }
 
-loadTextList();
-
 function hasTitle(title) {
   return textList.some((ele) => title === ele.title);
 }
 
-// routers
+loadTextList();
+
 // GET method - when client open the text
 app.get('/text/:id', (req, res) => { 
   const id = req.params.id;  
   const findText = textList.find((ele) => ele.id === id); 
-  if (findText) {
-    res.status(200).send(findText.text);
+  if (findText) { 
+    res.status(200).json(findText);
   } else {
     res.status(204).json({ success: false, message: 'Text not found' });
   }
@@ -102,7 +99,7 @@ app.delete('/text/:id', (req, res) => {
     save(textList);
     res.status(200).json({ success: true, message: 'Successfully deleted' });
   } else {
-    res.status(404).json({ success: false, message: 'Text not found' });
+    res.status(204).json({ success: false, message: 'Text not found' });
   }
 });
 

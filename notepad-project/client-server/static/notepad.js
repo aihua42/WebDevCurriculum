@@ -170,8 +170,8 @@ class TextContainer {
     xBtn.onclick = async (event) => {  
       event.stopPropagation();
 
-      const textSaved = await fetchGet(title); 
-      if (textSaved === text || confirm('Okay to leave without save?')) { 
+      const textJsonSaved = await fetchGet(title); 
+      if (textJsonSaved.text === text || confirm('Okay to leave without save?')) { 
         this.remove(title);
       } 
     };
@@ -243,8 +243,8 @@ const onclickFuncMap = {
       return;
     }
 
-    const text = await fetchGet(title); 
-    if (text !== null) { 
+    const textJson = await fetchGet(title); 
+    if (textJson.text !== null) { 
       alert('Title already exists in the system!');
       return;
     }
@@ -263,9 +263,9 @@ const onclickFuncMap = {
       return;
     }
 
-    const text = await fetchGet(title);   
-    if (text !== null) {  
-      textContainer.add(title, text);
+    const textJson = await fetchGet(title);   
+    if (textJson.text !== null) {  
+      textContainer.add(textJson.title, textJson.text);
     } else {
       alert('Text NOT found!');
     }
@@ -283,8 +283,8 @@ const onclickFuncMap = {
       return;
     }
 
-    const findText = await fetchGet(newTitle);  
-    if (findText !== null) {
+    const findTextJson = await fetchGet(newTitle);  
+    if (findTextJson.text !== null) {
       alert('Title already exists in system!');
       return;
     }
@@ -295,8 +295,8 @@ const onclickFuncMap = {
     const textArea = textContainer.textMap[title];
     const text = textArea.getText();
 
-    const textSaved = await fetchGet(title); 
-    if (textSaved !== null) { 
+    const textSavedJson = await fetchGet(title); 
+    if (textSavedJson.text !== null) { 
       await fetchPatch('title', title, newTitle);  // update the title immediately
       alert('Successfully renamed!');
     } 
@@ -314,14 +314,14 @@ const onclickFuncMap = {
 		const title = Object.keys(activeTextObj)[0]; 
 		const text = Object.values(activeTextObj)[0].getText();
 
-    const textSaved = await fetchGet(title); 
+    const textSavedJson = await fetchGet(title); 
 
-    if (textSaved === null) {
+    if (textSavedJson.text === null) {
       fetchPost(title, text);  // add to directory
-    } else if (text === textSaved) {
+    } else if (text === textSavedJson.text) {
       alert('Already saved!');
     } else {
-      fetchPatch('text', textSaved, text);  // update the text
+      fetchPatch('text', textSavedJson.text, text);  // update the text
       alert('Successfully saved!');
     } 
 	},
@@ -337,8 +337,8 @@ const onclickFuncMap = {
       return;
     }
 
-    const findText = await fetchGet(newTitle); 
-    if (findText !== null) {
+    const findTextJson = await fetchGet(newTitle); 
+    if (findTextJson.text !== null) {
       alert('Title already exists in the system, please rename!', '');
       return;
     }
@@ -368,10 +368,14 @@ async function fetchGet(title) {
   try {
     const res = await fetch(url);  
     if (res.status === 204) {
-      return null;
+      return { title: title, text: null };
     } else if (res.ok) {
       const data = await res.text();
-      return data;
+      if (data.title !== title) {
+        return { id: data.id, title: title, text: data.text };
+      } else {
+        return JSON.parse(data);
+      }
     } else {
       console.error('Unexpected error:', res.status);
     }
