@@ -2,13 +2,17 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>New NotePad</title>
-		<link rel="stylesheet" href="./notepad.css">
-		<script src="./notepad.js"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>NotePad</title>
+		<link rel="stylesheet" type="text/css" href="/notepad.css">
+		<script src="/notepad.js"></script>
 	</head>
 	<body>
 		<!-- TODO: 이 곳을 채워 클라이언트를 만들어 보세요 -->
 		<header>
+			<div class="log-in">
+				<!-- 여기에 log in button  -->
+			</div>
 			<div class="interact">
         <!-- 여기에 interaction buttons  -->
 			</div>
@@ -27,7 +31,7 @@
 			let interactBtnNameList = ['New Text', 'Open', 'Rename', 'Save', 'Save As', 'Delete'];
 
 			// notepad
-			let notepad = new Notepad('.title-area', '.text-area', '.interact', interactBtnNameList);
+			let notepad = new Notepad('.title-area', '.text-area', '.log-in', '.interact', interactBtnNameList);
 
 		</script>
 	</body>

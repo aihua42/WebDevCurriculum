@@ -1,13 +1,16 @@
 class Notepad {
 	/* TODO: 그 외에 또 어떤 클래스와 메소드가 정의되어야 할까요? */
-	constructor(titleParentSelector, textParentSelector, interactSelector, interactBtnNameList) {
+	constructor(titleParentSelector, textParentSelector, loginSelector, interactSelector, interactBtnNameList) {
 		this.titleParentSelector = titleParentSelector;
 		this.textParentSelector = textParentSelector;
+    this.loginSelector = loginSelector;
 		this.interactSelector = interactSelector;
 		this.interactBtnNameList = interactBtnNameList;
     
     this.textContainer = new TextContainer(this.titleParentSelector, this.textParentSelector);
-		this.interactBtnList = this.#createInteractBtnList();
+    this.#createLoginBtn();
+		this.#createInteractBtnList();
+    this.#getPrevTabs();
 	}
 
 	#createInteractBtnList() {  
@@ -22,17 +25,69 @@ class Notepad {
       interactBtn.ele.onclick = () => onclickFunc(this.textContainer); 
 			interactBtnList.push(interactBtn);
 		});  
-		return interactBtnList;
+
+    this.interactBtnList = interactBtnList;
 	}
+
+  #createLoginBtn() {
+    const btn = new ButtonEle(this.loginSelector, 'Login');
+    btn.ele.onclick = () => onclickFuncMap['login']();
+    this.loginBtn = btn;
+  }
+
+  async #getPrevTabs() {
+    const url = window.location.href;
+    const id = url.split('/user/')[1];
+    const btn = this.loginBtn;
+
+    if (!id) { // not login yet
+      return;
+    }
+    
+    const url2 = `http://localhost:3000/tabs/${id}`;
+    
+    await fetch(url2)
+    .then((res) => {
+      if (!res.ok) {
+        console.log(`Failed to get ${id}'s pre-data: `, res);
+        return;
+      }
+      return res.json(); 
+    })
+    .then((userData) => {
+      console.log('userData: ', userData);
+
+      const activeTitle = userData.activeTitle;
+      this.textContainer.userId = id;  // 최초 로그인한 user는 userId가 null, 로그아웃 한적이 없기 때문
+
+      const texts = userData.texts;
+      texts.forEach((titleNtext) => {
+        const title = titleNtext.title;
+        const text = titleNtext.text;
+
+        if (title !== 'welcomeText') {
+          this.textContainer.add(title, text);
+        }
+      });
+      this.textContainer.showTarget(activeTitle);
+    })
+    .catch((err) => {
+      // new user는 저장되어 있는 데이터가 없음.
+    });
+
+    // login button changes to logout button
+    btn.setSpanInnerText('Logout');
+    btn.ele.onclick = () => onclickFuncMap['logout'](this.textContainer);
+  }
 }
 
 class TextTitle {
 	constructor(parentSelector) {
 		this.parentSelector = parentSelector;
 
-    this.inputEle = this.#createTitleInputEle();
-    this.btnEle = this.#createTitleBtnEle();
-		this.ele = this.#createTitleInputContainer();
+    this.#createTitleInputEle();
+    this.#createTitleBtnEle();
+		this.#createTitleInputContainer();
 		this.#appendInputEleTo();
 	}
 
@@ -47,7 +102,7 @@ class TextTitle {
 		const inputEle = document.createElement('input');
 		inputEle.type = 'button';
     inputEle.readOnly = true;
-		return inputEle;
+		this.inputEle = inputEle;
 	}
 
   #createTitleBtnEle() {
@@ -55,13 +110,13 @@ class TextTitle {
     const spanEle = document.createElement('span');
     spanEle.innerText = 'x';
     btnEle.appendChild(spanEle);
-    return btnEle;
+    this.btnEle = btnEle;
   }
 
   #createTitleInputContainer() {
     const divEle = document.createElement('div');
     divEle.append(this.inputEle, this.btnEle);
-    return divEle;
+    this.ele = divEle;
   }
 
 	#appendInputEleTo() { 
@@ -74,7 +129,7 @@ class TextArea {
 		this.parentSelector = parentSelector;
     this.readOnly = readOnly;
 
-		this.ele = this.#createTextareaEle();
+		this.#createTextareaEle();
 		this.#appendTextareaTo();
 	}
 
@@ -89,7 +144,7 @@ class TextArea {
 		const textareaEle = document.createElement('textarea');
     textareaEle.readOnly = this.readOnly;
 		textareaEle.placeholder = this.readOnly ? '' : "Start your text here";
-		return textareaEle;
+		this.ele = textareaEle;
 	}
 
 	#appendTextareaTo() {  
@@ -103,7 +158,7 @@ class TextContainer {
     this.textParentSelector = textParentSelector;
 
     this.#createWelcomeText();
-    this.count = 0;
+    this.userId = null;
   }
  
   #createWelcomeText() {
@@ -170,7 +225,7 @@ class TextContainer {
     xBtn.onclick = async (event) => {  
       event.stopPropagation();
 
-      const textJsonSaved = await fetchGet(title); 
+      const textJsonSaved = await fetchGet(title, this.userId); 
       if (textJsonSaved.text === text || confirm('Okay to leave without save?')) { 
         this.remove(title);
       } 
@@ -178,14 +233,19 @@ class TextContainer {
   }
 
   remove(title) {     
-    const idx = Object.keys(this.titleMap).indexOf(title); 
+    const idxRemove = Object.keys(this.titleMap).indexOf(title); 
+    console.log('remove title: ', idxRemove, title);
+    
+    if (title === this.activeTitle) {
+      const idxActiveNext = idxRemove === 1 ? idxRemove+1 : idxRemove-1;
+      const activeTitleNext = Object.keys(this.titleMap)[idxActiveNext];
+      console.log('active title next: ', activeTitleNext);
+
+      this.showTarget(activeTitleNext);
+    }
     
     this.mapRemoveKeyVal('titleMap', title);
     this.mapRemoveKeyVal('textMap', title);
-    
-    if (title === this.activeTitle) {
-      this.showTarget(Object.keys(this.titleMap)[idx === 0 ? idx : idx-1]);
-    }
   }
 
   mapRemoveKeyVal(mapType, key) {
@@ -205,7 +265,7 @@ class TextContainer {
       if (titleMap[title]) {  
         titleMap[title].ele.classList.toggle('active', title === activeTitle);
       }
-      if (textMap[title]) {
+      if (textMap[title]) { 
         textMap[title].ele.classList.toggle('active', title === activeTitle);
       }
     });
@@ -217,9 +277,14 @@ class ButtonEle {
 		this.parentSelector = parentSelector;
 		this.spanInnerText = spanInnerText;
 
-		this.ele = this.#createBtnEle();
+		this.#createBtnEle();
 		this.#appendBtnEleTo();
 	}
+
+  setSpanInnerText(text) {
+    this.spanInnerText = text;
+    this.ele.querySelector('span').innerText = text;
+  }
 
 	#createBtnEle() {
     const span = document.createElement('span');
@@ -228,7 +293,7 @@ class ButtonEle {
 		const buttonEle = document.createElement('button');
 		buttonEle.appendChild(span);
 		buttonEle.type = 'button';
-		return buttonEle;
+		this.ele = buttonEle;
 	}
 
 	#appendBtnEleTo() {
@@ -243,7 +308,9 @@ const onclickFuncMap = {
       return;
     }
 
-    const textJson = await fetchGet(title); 
+    const textJson = await fetchGet(title, textContainer.userId); 
+    console.log('GET newText: ', textJson);
+
     if (textJson.text !== null) { 
       alert('Title already exists in the system!');
       return;
@@ -263,7 +330,9 @@ const onclickFuncMap = {
       return;
     }
 
-    const textJson = await fetchGet(title);   
+    const textJson = await fetchGet(title, textContainer.userId);   
+    console.log('GET open: ', textJson);
+
     if (textJson.text !== null) {  
       textContainer.add(textJson.title, textJson.text);
     } else {
@@ -283,26 +352,43 @@ const onclickFuncMap = {
       return;
     }
 
-    const findTextJson = await fetchGet(newTitle);  
+    const findTextJson = await fetchGet(newTitle, textContainer.userId);  
+    console.log('GET rename newTitle: ', findTextJson);
+
     if (findTextJson.text !== null) {
       alert('Title already exists in system!');
       return;
     }
     
-    const textTitle = textContainer.titleMap[title];
+    const textMap = textContainer.textMap;
+    const titleMap = textContainer.titleMap;
+    const textTitle = titleMap[title];
     textTitle.setTitle(newTitle);
 
-    const textArea = textContainer.textMap[title];
-    const text = textArea.getText();
 
-    const textSavedJson = await fetchGet(title); 
+    const textSavedJson = await fetchGet(title, textContainer.userId); 
+    console.log('GET rename title: ', textSavedJson);
+
     if (textSavedJson.text !== null) { 
-      await fetchPatch('title', title, newTitle);  // update the title immediately
+      const textId = trasformStr(newTitle);
+      await fetchPatch(textId, 'title', [title, newTitle], textContainer.userId);  // update the title immediately
+
       alert('Successfully renamed!');
     } 
 
-    textContainer.add(newTitle, text);
-    textContainer.remove(title);
+    const keys = Object.keys(textTitle);
+    keys.forEach((key) => {
+      if (key === title) {
+        titleMap[newTitle] = titleMap[title];
+        textMap[newTitle] = textMap[title];
+      
+        delete titleMap[title];
+        delete textMap[title];
+      }
+    });
+
+    textContainer.titleMap = titleMap;
+    textContainer.textMap = textMap;
   },
   
 	async save(textContainer) {   
@@ -314,14 +400,16 @@ const onclickFuncMap = {
 		const title = Object.keys(activeTextObj)[0]; 
 		const text = Object.values(activeTextObj)[0].getText();
 
-    const textSavedJson = await fetchGet(title); 
-
-    if (textSavedJson.text === null) {
-      fetchPost(title, text);  // add to directory
+    const textSavedJson = await fetchGet(title, textContainer.userId); 
+    console.log('GET save: ', textSavedJson);
+    
+    if (textSavedJson.title === null) {
+      fetchPost(title, text, textContainer.userId);  // add to directory
     } else if (text === textSavedJson.text) {
       alert('Already saved!');
     } else {
-      fetchPatch('text', textSavedJson.text, text);  // update the text
+      const textId = trasformStr(title);
+      await fetchPatch(textId, 'text', [textSavedJson.text, text], textContainer.userId);  // update the text
       alert('Successfully saved!');
     } 
 	},
@@ -337,7 +425,9 @@ const onclickFuncMap = {
       return;
     }
 
-    const findTextJson = await fetchGet(newTitle); 
+    const findTextJson = await fetchGet(newTitle, textContainer.userId); 
+    console.log('GET saveAs: ', findTextJson);
+
     if (findTextJson.text !== null) {
       alert('Title already exists in the system, please rename!', '');
       return;
@@ -345,7 +435,7 @@ const onclickFuncMap = {
 
     
 		const text = Object.values(activeTextObj)[0].getText();
-    fetchPost(newTitle, text);
+    fetchPost(newTitle, text, textContainer.userId);
 	},
 
   delete(textContainer) {
@@ -355,41 +445,94 @@ const onclickFuncMap = {
     }
 
     const title = Object.keys(activeTextObj)[0]; 
-    fetchDelete(title);
     textContainer.remove(title);
+    fetchDelete(title, textContainer.userId);
+  },
+
+  async login() {
+    const url = 'http://localhost:3000/login';
+    window.location.href = url;
+  },
+
+  async logout(textContainer) {
+    const id = textContainer.userId;
+
+    const userData = {};
+    userData.userId = id;
+    userData.activeTitle = textContainer.activeTitle;
+    userData.texts = [];
+
+    const textMap = textContainer.textMap;
+    Object.keys(textMap).forEach((title) => {
+      const titleNtext = {};
+      titleNtext.title = title;
+      titleNtext.text = textMap[title].getText();
+
+      userData.texts.push(titleNtext);
+    });
+    console.log('pre data: ', userData);
+   
+    try {
+      const url = 'http://localhost:3000/logout';
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+   
+      if (!res.ok) {
+        console.log('Failed to log out', res);
+        return;
+      }
+
+      alert('See you next time!', '');
+     
+      const url2 = 'http://localhost:3000';
+      window.location.href = url2;
+    } catch (err) {
+      console.error('Error during log out,', err);
+    }
   }
 }
 
-// fetch functions
-async function fetchGet(title) {
+// fetch functions for port 8000
+async function fetchGet(title, userId) {
   const id = trasformStr(title);
-  const url = 'http://localhost:8000/text/' + id;
+  const url = `http://localhost:8000/user/${userId}/${id}`;
   
   try {
     const res = await fetch(url);  
+    console.log(`fetchGet ${title}: `, res);
+
     if (res.status === 204) {
-      return { title: title, text: null };
+      return { id: null, title: null, text: null };
     } else if (res.ok) {
-      const data = await res.text();
+      const dataString = await res.text();
+      const data = JSON.parse(dataString);
+      console.log(`fetchGet data of ${title}: `, data);
+
       if (data.title !== title) {
         return { id: data.id, title: title, text: data.text };
       } else {
-        return JSON.parse(data);
+        return data;
       }
     } else {
-      console.error('Unexpected error:', res.status);
+      console.error('Unexpected error: ', res.status);
     }
   } catch(err) {  
     console.error('Error:', err.message);
   }
 }
 
-function fetchPost(title, text) {
-  const url = 'http://localhost:8000/text';
+async function fetchPost(title, text, userId) {
+  const url = 'http://localhost:8000/' + userId;
   const id = trasformStr(title);
   const data = { id, title, text };
  
-  fetch(url, {
+  await fetch(url, {
     method: 'POST',
     headers: {
       "Content-Type": "application/json; charset=utf-8"
@@ -397,20 +540,25 @@ function fetchPost(title, text) {
     body: JSON.stringify(data)
   })
   .then((res) => {
+    console.log(`fetchPost ${title}: `, res);
+
     if (res.ok) {
       alert("Successfully saved!");
     } else {
       alert('Title already exists in the system!', '');
     }
   })
-  .catch((err) => { 
+  .catch((err) => {
     alert('Title already exists in the system!', '');
   });
 }
 
-async function fetchPatch(key, preVal, newVal) {
-  const url = 'http://localhost:8000/text/' + key;
+async function fetchPatch(id, key, vals, userId) {
+  const url = `http://localhost:8000/user/${userId}/${key}`;
+  const preVal = vals[0];
+  const newVal = vals[1];
   const updatedData = {
+    id: id,
     before: preVal,
     after: newVal
   };
@@ -423,6 +571,7 @@ async function fetchPatch(key, preVal, newVal) {
       },
       body: JSON.stringify(updatedData)
     });
+    console.log(`fetchPatch of ${key}: `, res);
 
     if (!res.ok) {
       return false;
@@ -434,19 +583,20 @@ async function fetchPatch(key, preVal, newVal) {
   }
 }
 
-function fetchDelete(title) {
+async function fetchDelete(title, userId) {
   const id = trasformStr(title);
-  const url = 'http://localhost:8000/text/' + id;
+  const url = `http://localhost:8000/user/${userId}/${id}`;
   
-  fetch(url, {
+  await fetch(url, {
     method: 'DELETE'
   })
   .then((res) => {
+    console.log(`fetchDelete ${title}: `, res);
+
     if (res.ok) {
       alert("Text is deleted!");
     }  
-  })
-  .catch((err) => {});
+  });
 }
 
 function trasformStr(str) {

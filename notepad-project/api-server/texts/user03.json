@@ -1,0 +1,12 @@
+[
+  {
+    "id": "greeting",
+    "title": "greeting",
+    "text": "Welcome 2024!"
+  },
+  {
+    "id": "welcome",
+    "title": "welcome",
+    "text": "Welcome user03!"
+  }
+]

@@ -11,41 +11,25 @@
 body {
 	width: 100%;
 	height: 100vh;
-  padding-top: 30px;
+  padding-top: 10px;
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
 	justify-content: flex-start;
 	align-items: center;
 }
+body button {
+	cursor: pointer;
+	border-radius: 4px;
+}
 
 header {
-	width: 1065px;
-	height: 70px;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+}
+header button {
 	border-radius: 4px;
-	display: flex;
-	justify-content: flex-end;
-  align-items: top;
-}
-
-div {
-	display: inline-block;
-}
-
-main {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.interact {
-	display: flex;
-	justify-content: flex-end;
-	gap: 10px;
-}
-.interact button {
-	width: 100%;
 	text-wrap: nowrap;
 	border: none;
 	outline: none;
@@ -53,14 +37,35 @@ main {
 	padding-right: 5px;
 	font-size: 16px;
 	box-shadow: rgb(226, 169, 94) 0px 5px 15px;
-	border-radius: 4px;
 	height: 30px;
 	text-align: center;
-	cursor: pointer;
 }
-.interact button:hover,
-.interact button:hover span {
+header button:hover,
+header button:hover span {
 	background-color: rgb(240, 229, 215);
+}
+
+.log-in {
+	height: 40px;
+}
+.log-in button {
+	position: absolute;
+	right: 20px;
+}
+
+.interact {
+	width: 1065px;
+	height: 70px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .title-area {
@@ -95,9 +100,7 @@ input[type] {
 	top: 10px;
 	right: 0;
 	background-color: rgb(241, 216, 182);
-	/*border-color: rgb(240, 229, 215); */
 	border: none;
-	border-radius: 4px;
 }
 .title-area span {
 	color: rgb(230, 136, 13);
@@ -107,7 +110,6 @@ input[type] {
 .title-area button:hover span {
 	color: rgb(240, 229, 215);
 	background-color: rgb(226, 169, 94);
-	cursor: pointer;
 }
 
 textarea {
