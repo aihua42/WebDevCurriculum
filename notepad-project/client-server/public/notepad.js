@@ -10,7 +10,7 @@ class Notepad {
     this.textContainer = new TextContainer(this.titleParentSelector, this.textParentSelector);
     this.#createLoginBtn();
 		this.#createInteractBtnList();
-    this.#getPrevTabs();
+    this.#getTabsBeforeLogout();
 	}
 
 	#createInteractBtnList() {  
@@ -35,7 +35,7 @@ class Notepad {
     this.loginBtn = btn;
   }
 
-  async #getPrevTabs() {
+  async #getTabsBeforeLogout() {  
     const url = window.location.href;
     const id = url.split('/user/')[1];
     const btn = this.loginBtn;
@@ -52,7 +52,7 @@ class Notepad {
         console.log(`Failed to get ${id}'s pre-data: `, res);
         return;
       }
-      return res.json(); 
+      return res.json(); // if failed, server will send  html file
     })
     .then((userData) => {
       console.log('userData: ', userData);
