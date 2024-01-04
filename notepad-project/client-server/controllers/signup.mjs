@@ -1,5 +1,5 @@
 import fs from "fs/promises";
-import getPath from "../common-functions/getPath.mjs";
+import getPath from "../utility/getPath.mjs";
 
 const signup = async (req, res) => {
   const {id, nickname, pw} = req.body;
@@ -12,9 +12,7 @@ const signup = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to make directory for users folder' });
   });
 
-  const separator = "controllers";
-  const pathsToAdd = [usersDir, `${id}.json`];
-  const userPath = getPath(import.meta.url, separator, pathsToAdd);
+  const userPath = getPath(import.meta.url, "controllers", [usersDir, `${id}.json`]);
 
   try {
     await fs.access(userPath);

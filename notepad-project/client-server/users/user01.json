@@ -1,31 +1,5 @@
 {
   "id": "user01",
   "nickname": "Ava",
-  "pw": "passwordofuser01",
-  "data": {
-    "userId": "user01",
-    "activeTitle": "title 1",
-    "texts": [
-      {
-        "title": "welcomeText",
-        "text": "\n\n    Welcome!\n\n    Please click 'New Text' button to start your new text!"
-      },
-      {
-        "title": "title 2",
-        "text": "This is text 2."
-      },
-      {
-        "title": "title 3",
-        "text": "This is text 3."
-      },
-      {
-        "title": "title 1",
-        "text": "This is text 1."
-      },
-      {
-        "title": "title 4",
-        "text": "This is text 4."
-      }
-    ]
-  }
+  "pw": "passwordofuser01"
 }

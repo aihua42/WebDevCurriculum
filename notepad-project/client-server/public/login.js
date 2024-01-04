@@ -26,7 +26,7 @@ btn.onclick = async () => {
  
     if (!res.ok) {
       console.log('res of login POST: ', res);
-      console.error('Failed to log in');
+      console.log('Failed to log in');
       return;
     }
 
@@ -51,7 +51,7 @@ btn.onclick = async () => {
 
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('loginForm').addEventListener('submit', function(event) {
-    event.preventDefault();
+    event.preventDefault();  // 새로고침 방지
 
     idInput.classList.remove('error');
     pwInput.classList.remove('error');

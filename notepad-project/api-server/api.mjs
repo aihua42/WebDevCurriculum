@@ -13,31 +13,39 @@ app.use(morgan('dev'));
 app.use(cors());
 app.use(express.json());
 
-// call textList from server directory or make an empty one
+// call file from server directory or make an empty one
+// output Array of textList, or Object of tabs
 let textList = [];
-async function loadTextList(userId) {
-  const textsDir = 'texts';
-  const textPath = path.join(textsDir, `${userId}.json`);  
-  await fs.readFile(textPath, 'utf-8')
+let tabs = {};
+async function loadUserData(userId, dirName = 'texts') {
+  if (!userId) {
+    console.error('userId is required');
+    res.status(400).json({ success: false, message: 'userId is required' });
+    return;
+  }
+
+  const pathStr = path.join(dirName, `${userId}.json`);  
+
+  await fs.readFile(pathStr, 'utf-8')
   .then((file) => { 
-    textList = JSON.parse(file);
+    const data = JSON.parse(file);
+    dirName === 'texts' ? textList = data : tabs = data;
   })
   .catch(async (err) => {
-    await fs.mkdir(textsDir, { recursive: true })
+    await fs.mkdir(dirName, { recursive: true })
     .then()
     .catch((err) => {
-      console.error('Failed to make directory for texts folder', err);
-      res.status(500).json({ success: false, message: 'Failed to make directory for texts folder' });
+      console.error(`Failed to make directory for ${dirName} folder`, err);
+      res.status(500).json({ success: false, message: `Failed to make directory for ${dirName} folder` });
     });
   });
 } 
 
 // save in api server directory
-async function save(textList, userId) {
+async function save(data, userId, dirName = 'texts') {
   try {
-    const textsDir = 'texts';
-    const textPath = path.join(textsDir, `${userId}.json`);  
-    await fs.writeFile(textPath, JSON.stringify(textList, null, 2), 'utf-8')
+    const pathStr = path.join(dirName, `${userId}.json`);  
+    await fs.writeFile(pathStr, JSON.stringify(data, null, 2), 'utf-8')
   } catch (err) {
     console.error('Fail to save:', err.message);
   }
@@ -47,11 +55,11 @@ function hasTitle(title, textList) {
   return textList.some((ele) => title === ele.title);
 }
 
-// GET method - when client open the text
+// GET method - send the saved text
 app.get('/user/:userId/:id', async (req, res) => {
   const id = req.params.id; 
   const userId = req.params.userId;
-  await loadTextList(userId); 
+  await loadUserData(userId);  // get textList
   console.log('userId and text id: ', [userId, id]);
   console.log('text list of GET: ', textList);
 
@@ -63,10 +71,29 @@ app.get('/user/:userId/:id', async (req, res) => {
   }
 });
 
-// POST method - when client save a new text
-app.post('/:userId', async (req, res) => {
+// GET method - send previous tabs
+app.get('/tabs/:userId', async (req, res) => {
   const userId = req.params.userId;
-  await loadTextList(userId);  
+  if (userId !== req.params.userId) {
+    res.status(404).json({ success: false, message: 'User id does NOT match' });
+    return;
+  }
+
+  await loadUserData(userId, 'tabs');
+
+  const dataStr = JSON.stringify(tabs);
+  const contentLen = Buffer.from(dataStr).length;
+  console.log("content length: ", contentLen);
+
+  res.setHeader("Content-Length", contentLen); // net::ERR_CONNECTION_REFUSED
+  res.send(tabs);
+});
+
+// POST method - when client save a new text
+app.post('/user/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  await loadUserData(userId);   // get textList
+
   const { id, title, text } = req.body;
   console.log('text list of before POST: ', textList);
   
@@ -75,6 +102,7 @@ app.post('/:userId', async (req, res) => {
   } else { 
     const newText = { id, title, text };  
     textList.push(newText);  
+
     await save(textList, userId);
     console.log('text list of after POST: ', textList);
     
@@ -82,10 +110,27 @@ app.post('/:userId', async (req, res) => {
   }
 });
 
+// POST method - when client sends previous tabs
+app.post('/tabs/:userId', async (req, res) => {
+  const { userId, activeTitle, texts } = req.body;  // userId, activeTitle, texts(Array)
+  if (userId !== req.params.userId) {
+    res.status(404).json({ success: false, message: 'User id does NOT match' });
+    return;
+  }
+
+  await loadUserData(userId, 'tabs');  // get tabs
+  tabs = { activeTitle, texts };
+
+  await save(tabs, userId, 'tabs');
+  console.log('Tabs successfully saved: ', tabs);
+
+  res.status(201).json({ success: true, message: 'Tabs successfully saved' });
+});
+
 // PATCH method - update title or text
 app.patch('/user/:userId/:key', async (req, res) => {
   const userId = req.params.userId;
-  await loadTextList(userId);
+  await loadUserData(userId);  // get textList
   console.log('text list of before PATCH: ', textList);
 
   const key = req.params.key;
@@ -121,7 +166,7 @@ app.patch('/user/:userId/:key', async (req, res) => {
 // DELETE method - remove from server directory
 app.delete('/user/:userId/:id', async (req, res) => {
   const userId = req.params.userId;
-  await loadTextList(userId);
+  await loadUserData(userId);
   console.log('text list of before DELETE: ', textList);
 
   const id = req.params.id;  

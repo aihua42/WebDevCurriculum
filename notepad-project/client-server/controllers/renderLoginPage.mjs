@@ -1,10 +1,8 @@
-import getPath from "../common-functions/getPath.mjs";
+import getPath from "../utility/getPath.mjs";
 
 const renderLoginPage = (req, res) => {
   try { 
-    const separator = 'controllers';
-    const pathsToAdd = ['views', 'login.html'];
-    const loginPath = getPath(import.meta.url, separator, pathsToAdd);
+    const loginPath = getPath(import.meta.url, 'controllers', ['views', 'login.html']);
     res.sendFile(loginPath);
   } catch(err) {
     console.error('Error: ', err.message);

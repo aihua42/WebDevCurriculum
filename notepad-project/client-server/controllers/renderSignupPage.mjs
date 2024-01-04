@@ -1,10 +1,8 @@
-import getPath from "../common-functions/getPath.mjs";
+import getPath from "../utility/getPath.mjs";
 
 const renderSignupPage = (req, res) => {
   try {
-    const separator = 'controllers';
-    const pathsToAdd = ['views', 'signup.html'];
-    const signupPath = getPath(import.meta.url, separator, pathsToAdd);
+    const signupPath = getPath(import.meta.url, 'controllers', ['views', 'signup.html']);
     res.sendFile(signupPath);
   } catch(err) {
     console.error('Error: ', err.message);

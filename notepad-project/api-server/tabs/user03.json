@@ -1,0 +1,21 @@
+{
+  "activeTitle": "greeting",
+  "texts": [
+    {
+      "title": "welcomeText",
+      "text": "\n\n    Welcome!\n\n    Please click 'New Text' button to start your new text!"
+    },
+    {
+      "title": "greeting",
+      "text": "Welcome 2024!"
+    },
+    {
+      "title": "welcome",
+      "text": "Welcome user03!"
+    },
+    {
+      "title": "message",
+      "text": "This is a message..."
+    }
+  ]
+}

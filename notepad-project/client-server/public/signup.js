@@ -29,7 +29,7 @@ btn.onclick = async () => {
     });
 
     if (!res.ok) {
-      console.error('Failed to sign up');
+      console.log('Failed to sign up');
       return;
     }
 

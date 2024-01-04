@@ -10,7 +10,8 @@ class Notepad {
     this.textContainer = new TextContainer(this.titleParentSelector, this.textParentSelector);
     this.#createLoginBtn();
 		this.#createInteractBtnList();
-    this.#getTabsBeforeLogout();
+    this.#getPrevTabs();
+    //this.#logoutBeforeunload();
 	}
 
 	#createInteractBtnList() {  
@@ -35,7 +36,7 @@ class Notepad {
     this.loginBtn = btn;
   }
 
-  async #getTabsBeforeLogout() {  
+  async #getPrevTabs() {  
     const url = window.location.href;
     const id = url.split('/user/')[1];
     const btn = this.loginBtn;
@@ -44,21 +45,20 @@ class Notepad {
       return;
     }
     
-    const url2 = `http://localhost:3000/tabs/${id}`;
-    
+    const url2 = `http://localhost:8000/tabs/${id}`;
     await fetch(url2)
     .then((res) => {
       if (!res.ok) {
-        console.log(`Failed to get ${id}'s pre-data: `, res);
+        console.error(`Failed to get ${id}'s pre-data: `, res);
         return;
       }
-      return res.json(); // if failed, server will send  html file
+      return res.json(); 
     })
     .then((userData) => {
       console.log('userData: ', userData);
 
       const activeTitle = userData.activeTitle;
-      this.textContainer.userId = id;  // 최초 로그인한 user는 userId가 null, 로그아웃 한적이 없기 때문
+      this.textContainer.userId = id; 
 
       const texts = userData.texts;
       texts.forEach((titleNtext) => {
@@ -72,12 +72,28 @@ class Notepad {
       this.textContainer.showTarget(activeTitle);
     })
     .catch((err) => {
-      // new user는 저장되어 있는 데이터가 없음.
+      // new user는 저장되어 있는 previous tabs 없음. texts.forEach 문에서 걸리지만 무시
     });
 
     // login button changes to logout button
     btn.setSpanInnerText('Logout');
     btn.ele.onclick = () => onclickFuncMap['logout'](this.textContainer);
+  }
+
+  #logoutBeforeunload() {
+    let isPageVisible = true;
+
+    document.addEventListener('visibilitychange', () => {
+      isPageVisible = document.visibilityState === 'visible';
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (!isPageVisible) {
+        onclickFuncMap['logout'](this.textContainer);
+      } else {
+        console.log(`It's refresh the page, not leave`);
+      }
+    });
   }
 }
 
@@ -457,6 +473,29 @@ const onclickFuncMap = {
   async logout(textContainer) {
     const id = textContainer.userId;
 
+    const urlLogout = 'http://localhost:3000/user/' + id;
+    const res = await fetch(urlLogout, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id })
+    });
+
+    if (!res.ok) {
+      console.error('Failed to logout, will lose the tabs...', res);
+      //window.location.href = 'http://localhost:3000';
+      return;
+    }
+
+    if (res.status === 500) {
+      console.error('Logouted already?', res);
+      alert(`Logouted already?`);
+
+      return;
+    }
+
+    // tabs to be sent
     const userData = {};
     userData.userId = id;
     userData.activeTitle = textContainer.activeTitle;
@@ -470,11 +509,11 @@ const onclickFuncMap = {
 
       userData.texts.push(titleNtext);
     });
-    console.log('pre data: ', userData);
-   
+    console.log('tabs: ', userData);
+    
+    // send tabs to api server before redirect to the domain page
     try {
-      const url = 'http://localhost:3000/logout';
-
+      const url = `http://localhost:8000/tabs/${id}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -482,23 +521,28 @@ const onclickFuncMap = {
         },
         body: JSON.stringify(userData)
       });
-   
+
       if (!res.ok) {
-        console.log('Failed to log out', res);
+        console.error('Failed to send tabs', res);
         return;
       }
 
       alert('See you next time!', '');
-     
+    
       const url2 = 'http://localhost:3000';
       window.location.href = url2;
     } catch (err) {
-      console.error('Error during log out,', err);
+      console.error('Error during send tabs,', err);
     }
   }
 }
 
-// fetch functions for port 8000
+// create text id
+function trasformStr(str) {
+  return str.replaceAll(' ', '-').toLowerCase();
+}
+
+// fetch functions for 'New Text', 'Open', 'Rename', 'Save', 'Save As', 'Delete' buttons
 async function fetchGet(title, userId) {
   const id = trasformStr(title);
   const url = `http://localhost:8000/user/${userId}/${id}`;
@@ -528,7 +572,7 @@ async function fetchGet(title, userId) {
 }
 
 async function fetchPost(title, text, userId) {
-  const url = 'http://localhost:8000/' + userId;
+  const url = 'http://localhost:8000/user/' + userId;
   const id = trasformStr(title);
   const data = { id, title, text };
  
@@ -597,8 +641,4 @@ async function fetchDelete(title, userId) {
       alert("Text is deleted!");
     }  
   });
-}
-
-function trasformStr(str) {
-  return str.replaceAll(' ', '-').toLowerCase();
 }
