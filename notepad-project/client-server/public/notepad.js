@@ -10,8 +10,7 @@ class Notepad {
     this.textContainer = new TextContainer(this.titleParentSelector, this.textParentSelector);
     this.#createLoginBtn();
 		this.#createInteractBtnList();
-    this.#getPrevTabs();
-    //this.#logoutBeforeunload();
+    this.#showPrevTabs();
 	}
 
 	#createInteractBtnList() {  
@@ -36,31 +35,53 @@ class Notepad {
     this.loginBtn = btn;
   }
 
-  async #getPrevTabs() {  
+  async #showPrevTabs() {  // page reload 할때마다 실행된다. 중간에 쿠키 만료되면 에러 생김
     const url = window.location.href;
     const id = url.split('/user/')[1];
     const btn = this.loginBtn;
 
-    if (!id) { // not login yet
+    if (!id) { // invalid url
+      console.log('Hello Page!');
       return;
     }
+
+    // 일단 웰컴 페이지를 만든다
+    this.textContainer.textMap.welcomeText.setText(`\n\n    Welcome!\n\n    Please click 'New Text' button to start your new text!`);
+
+    this.textContainer.userId = id; 
+    console.log(`Trying to get the previous tabs ${this.textContainer.userId}(${id}) worked on...`);
     
-    const url2 = `http://localhost:8000/tabs/${id}`;
-    await fetch(url2)
-    .then((res) => {
-      if (!res.ok) {
-        console.error(`Failed to get ${id}'s pre-data: `, res);
-        return;
+    const url2 = `http://localhost:8000/user/${id}`;
+    await fetch(url2, {
+      method: 'GET',
+      credentials: 'include'  // for cors, must be set include. unless can't send session values which api server set
+    })
+    .then(async (res) => {
+      console.log('res status code when open the user page: ', res.status);
+      if (res.status === 401) {
+        console.log('Try to refresh the cookie when receiving tabs...');
+
+        const result = await refreshCookie(id);
+        if (result) {  
+          const res = await fetch(url2, {
+            method: 'GET',
+            credentials: 'include'  // for cors, must be set include. unless can't send session values which api server set
+          });
+
+          return res.json();
+        } else {
+          throw new Error('Fail to refresh the cookie when refresh the page');
+        }
       }
+
       return res.json(); 
     })
-    .then((userData) => {
-      console.log('userData: ', userData);
+    .then((tabs) => {
+      console.log(`${id}'s tabs received:`, tabs);
 
-      const activeTitle = userData.activeTitle;
-      this.textContainer.userId = id; 
+      const activeTitle = tabs.activeTitle;
 
-      const texts = userData.texts;
+      const texts = tabs.texts;
       texts.forEach((titleNtext) => {
         const title = titleNtext.title;
         const text = titleNtext.text;
@@ -72,28 +93,13 @@ class Notepad {
       this.textContainer.showTarget(activeTitle);
     })
     .catch((err) => {
+      console.log(`${id}'s first log in`);
       // new user는 저장되어 있는 previous tabs 없음. texts.forEach 문에서 걸리지만 무시
     });
 
     // login button changes to logout button
     btn.setSpanInnerText('Logout');
     btn.ele.onclick = () => onclickFuncMap['logout'](this.textContainer);
-  }
-
-  #logoutBeforeunload() {
-    let isPageVisible = true;
-
-    document.addEventListener('visibilitychange', () => {
-      isPageVisible = document.visibilityState === 'visible';
-    });
-
-    window.addEventListener("beforeunload", () => {
-      if (!isPageVisible) {
-        onclickFuncMap['logout'](this.textContainer);
-      } else {
-        console.log(`It's refresh the page, not leave`);
-      }
-    });
   }
 }
 
@@ -180,7 +186,7 @@ class TextContainer {
   #createWelcomeText() {
     const welcomeText = new TextArea(this.textParentSelector, true);
     welcomeText.ele.style.fontSize = '20px';
-    const value = `\n\n    Welcome!\n\n    Please click 'New Text' button to start your new text!`;
+    const value = '\n\n    Hello!\n\n    Please log in!'; 
     welcomeText.setText(value);
     welcomeText.ele.classList.add('active');
     welcomeText.ele.id = 'welcome';
@@ -250,7 +256,7 @@ class TextContainer {
 
   remove(title) {     
     const idxRemove = Object.keys(this.titleMap).indexOf(title); 
-    console.log('remove title: ', idxRemove, title);
+    console.log(`remove title of index: ${idxRemove}`, title);
     
     if (title === this.activeTitle) {
       const idxActiveNext = idxRemove === 1 ? idxRemove+1 : idxRemove-1;
@@ -318,14 +324,14 @@ class ButtonEle {
 }
 
 const onclickFuncMap = {
-  async newText(textContainer) { 
+  async newText(textContainer) {    
     let title = prompt('Input the title:', '');
     if (title === null || title === '') {
       return;
     }
 
     const textJson = await fetchGet(title, textContainer.userId); 
-    console.log('GET newText: ', textJson);
+    console.log('GET in newText: ', textJson);
 
     if (textJson.text !== null) { 
       alert('Title already exists in the system!');
@@ -347,7 +353,7 @@ const onclickFuncMap = {
     }
 
     const textJson = await fetchGet(title, textContainer.userId);   
-    console.log('GET open: ', textJson);
+    console.log('GET in open: ', textJson);
 
     if (textJson.text !== null) {  
       textContainer.add(textJson.title, textJson.text);
@@ -369,7 +375,7 @@ const onclickFuncMap = {
     }
 
     const findTextJson = await fetchGet(newTitle, textContainer.userId);  
-    console.log('GET rename newTitle: ', findTextJson);
+    console.log('GET in rename working on newTitle: ', findTextJson);
 
     if (findTextJson.text !== null) {
       alert('Title already exists in system!');
@@ -383,7 +389,7 @@ const onclickFuncMap = {
 
 
     const textSavedJson = await fetchGet(title, textContainer.userId); 
-    console.log('GET rename title: ', textSavedJson);
+    console.log('GET in rename working on title: ', textSavedJson);
 
     if (textSavedJson.text !== null) { 
       const textId = trasformStr(newTitle);
@@ -417,7 +423,7 @@ const onclickFuncMap = {
 		const text = Object.values(activeTextObj)[0].getText();
 
     const textSavedJson = await fetchGet(title, textContainer.userId); 
-    console.log('GET save: ', textSavedJson);
+    console.log('GET in save: ', textSavedJson);
     
     if (textSavedJson.title === null) {
       fetchPost(title, text, textContainer.userId);  // add to directory
@@ -442,7 +448,7 @@ const onclickFuncMap = {
     }
 
     const findTextJson = await fetchGet(newTitle, textContainer.userId); 
-    console.log('GET saveAs: ', findTextJson);
+    console.log('GET in saveAs: ', findTextJson);
 
     if (findTextJson.text !== null) {
       alert('Title already exists in the system, please rename!', '');
@@ -473,33 +479,11 @@ const onclickFuncMap = {
   async logout(textContainer) {
     const id = textContainer.userId;
 
-    const urlLogout = 'http://localhost:3000/user/' + id;
-    const res = await fetch(urlLogout, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ id })
-    });
-
-    if (!res.ok) {
-      console.error('Failed to logout, will lose the tabs...', res);
-      //window.location.href = 'http://localhost:3000';
-      return;
-    }
-
-    if (res.status === 500) {
-      console.error('Logouted already?', res);
-      alert(`Logouted already?`);
-
-      return;
-    }
-
-    // tabs to be sent
-    const userData = {};
-    userData.userId = id;
-    userData.activeTitle = textContainer.activeTitle;
-    userData.texts = [];
+    // if user logout successfully, then send the tabs to the appi server
+    const tabs = {};
+    tabs.userId = id;
+    tabs.activeTitle = textContainer.activeTitle;
+    tabs.texts = [];
 
     const textMap = textContainer.textMap;
     Object.keys(textMap).forEach((title) => {
@@ -507,35 +491,87 @@ const onclickFuncMap = {
       titleNtext.title = title;
       titleNtext.text = textMap[title].getText();
 
-      userData.texts.push(titleNtext);
+      tabs.texts.push(titleNtext);
     });
-    console.log('tabs: ', userData);
-    
-    // send tabs to api server before redirect to the domain page
-    try {
-      const url = `http://localhost:8000/tabs/${id}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
+    console.log('user tabs: ', tabs);
 
+    const urlLogout = 'http://localhost:8000/logout';
+    await fetch(urlLogout, {
+      method: 'POST',
+      credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id, tabs })
+    })
+    .then(async (res) => {
+      if (res.status === 401) {
+        console.log('Try to refresh the cookie when logging out...');
+
+        const result = await refreshCookie(id);
+        if (result) {
+          const res = await fetch(urlLogout, {
+            method: 'POST',
+            credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, tabs })
+          });
+
+          return res;
+        } else {
+          throw new Error('Fail to refresh the cookie when log out');
+        }
+      }
+
+      return res;
+    })
+    .then((res) => {
       if (!res.ok) {
-        console.error('Failed to send tabs', res);
+        alert('Failed to log out!');
         return;
       }
 
+      if (res.status === 500) {
+        alert(`Logouted user, can't logout again`);
+        return;
+      }
       alert('See you next time!', '');
-    
+
       const url2 = 'http://localhost:3000';
       window.location.href = url2;
-    } catch (err) {
-      console.error('Error during send tabs,', err);
-    }
+    })
+    .catch((err) => {
+      console.error('Error message from API server during log out; ', err);
+    })
   }
 }
+
+// fetch function for refreshing the session ID or token
+async function refreshCookie(userId) {
+  const url = 'http://localhost:8000/auth';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ userId })
+    });
+
+    if (!res.ok) {
+      return false;
+    } else {
+      return true;
+    }
+  } catch (err) {
+    return false;
+  }
+}
+
+
 
 // create text id
 function trasformStr(str) {
@@ -548,10 +584,21 @@ async function fetchGet(title, userId) {
   const url = `http://localhost:8000/user/${userId}/${id}`;
   
   try {
-    const res = await fetch(url);  
-    console.log(`fetchGet ${title}: `, res);
+    const res = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
+    });  
 
-    if (res.status === 204) {
+    if (res.status === 401) {  // need to refresh the session ID or token
+      console.log(`Try to refresh the cookie in fetchGet title: ${title}`);
+
+      const result = refreshCookie(userId);
+      if (result) {
+        return await fetchGet(title, userId);
+      } else {
+        console.error(`Fail to refresh the cookie in fetchGet title: ${title}`);
+      }
+    } else if (res.status === 204) {
       return { id: null, title: null, text: null };
     } else if (res.ok) {
       const dataString = await res.text();
@@ -578,13 +625,24 @@ async function fetchPost(title, text, userId) {
  
   await fetch(url, {
     method: 'POST',
+    credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
     headers: {
       "Content-Type": "application/json; charset=utf-8"
     },
     body: JSON.stringify(data)
   })
-  .then((res) => {
-    console.log(`fetchPost ${title}: `, res);
+  .then(async (res) => {
+    if (res.status === 401) {  // need to refresh the session ID or token
+      console.log(`Try to refresh the cookie in fetchPost title: ${title}`);
+
+      const result = await refreshCookie(userId);
+      if (result) {
+        await fetchPost(title, text, userId);
+      } else {
+        console.error(`Fail to refresh the cookie in fetchPOST title: ${title}`);
+      }
+      return;
+    }
 
     if (res.ok) {
       alert("Successfully saved!");
@@ -610,14 +668,23 @@ async function fetchPatch(id, key, vals, userId) {
   try {
     const res = await fetch(url, {
       method: 'PATCH',
+      credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
       headers: {
         "Content-Type": "application/json; charset=utf-8"
       },
       body: JSON.stringify(updatedData)
     });
-    console.log(`fetchPatch of ${key}: `, res);
 
-    if (!res.ok) {
+    if (res.status === 401) {
+      console.log(`Try to refresh the cookie in fetchPatch title: ${title}`);
+      const result = await refreshCookie(userId);
+      if (result) {
+        return await fetchPatch(id, key, vals, userId);
+      } else {
+        console.error(`Fail to refresh the cookie in fetchPatch target: ${id}`);
+        return false;
+      }
+    } else if (!res.ok) {
       return false;
     } else {
       return true;
@@ -632,12 +699,20 @@ async function fetchDelete(title, userId) {
   const url = `http://localhost:8000/user/${userId}/${id}`;
   
   await fetch(url, {
-    method: 'DELETE'
+    method: 'DELETE',
+    credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
   })
-  .then((res) => {
-    console.log(`fetchDelete ${title}: `, res);
+  .then(async (res) => {
+    if (res.status === 401) {
+      console.log(`Try to refresh the cookie in fetchDelete title: ${title}`);
 
-    if (res.ok) {
+      const result = await refreshCookie(userId);
+      if (result) {
+        await fetchDelete(title, userId);
+      } else {
+        console.error(`Fail to refresh the cookie in fetchDelete title: ${title}`);
+      }
+    } else if (res.ok) {
       alert("Text is deleted!");
     }  
   });

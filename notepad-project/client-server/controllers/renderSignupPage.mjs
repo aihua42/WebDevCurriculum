@@ -1,12 +1,14 @@
-import getPath from "../utility/getPath.mjs";
+import path from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const renderSignupPage = (req, res) => {
   try {
-    const signupPath = getPath(import.meta.url, 'controllers', ['views', 'signup.html']);
-    res.sendFile(signupPath);
+    res.sendFile(path.join(process.env.__PUBLIC, 'signup.html'));
   } catch(err) {
-    console.error('Error: ', err.message);
+    console.error('Error from rendering sign up page: ', err.message);
   }
-}
+};
 
 export default renderSignupPage;

@@ -1,15 +1,11 @@
 import express from 'express';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import cookieParser from 'cookie-parser';
 
-import sessMiddleware from './middlewares/session.mjs';
-import jwtMiddleware from './middlewares/jwt.mjs';
-
-import getPath from './utility/getPath.mjs';
-
-import getRouter from './routes/getRouter.mjs';
-import postRouter from './routes/postRouter.mjs';
+import renderDomainPage from './controllers/renderDomainPage.mjs';
+import renderLoginPage from './controllers/renderLoginPage.mjs';
+import renderUserPage from './controllers/renderUserPage.mjs';
+import renderSignupPage from './controllers/renderSignupPage.mjs';
 
 const app = express();
 dotenv.config();
@@ -17,16 +13,16 @@ dotenv.config();
 // middlewares below
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(sessMiddleware);  // session 발급
 
-app.use(cookieParser());  // jwt는 cookie-parser 가 필요함
-app.use(jwtMiddleware);  // access token 재발급 if necessary
+app.use(express.static(process.env.__PUBLIC));
 
-app.use(express.static(getPath(import.meta.url, null, ['public'])));
+app.get("/", renderDomainPage);
 
-// routes
-app.use(getRouter);
-app.use(postRouter);
+app.get("/login", renderLoginPage);
+
+app.get("/user/:id", renderUserPage);
+
+app.get("/signup", renderSignupPage);
 
 app.listen(process.env.PORT, () => {
   console.log(`Client server has started and is listening on port number: ${process.env.PORT}`);

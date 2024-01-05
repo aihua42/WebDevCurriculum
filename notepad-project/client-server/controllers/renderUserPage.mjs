@@ -1,19 +1,13 @@
-import getPath from '../utility/getPath.mjs';
-import verifyUser from '../utility/verifyUser.mjs';
+import path from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const renderUserPage = (req, res) => {
   try {
-    const check = verifyUser(req, res);
-    if (check) {
-      const indexPath = getPath(import.meta.url, 'controllers', ['views', 'index.html']);
-      res.sendFile(indexPath);
-    } else {
-      console.error('Failed to verify the user');
-      res.status(405).json({ success: false, message: 'Failed to verify the user' });
-    }
+    res.sendFile(path.join(process.env.__PUBLIC, 'index.html'));
   } catch(err) {
-    console.error('Error: ', err.message);
-    res.status(405).json({ success: false, message: 'Failed to authenticate the user' });
+    console.error('Error from rendering user page: ', err.message);
   }
 };
 

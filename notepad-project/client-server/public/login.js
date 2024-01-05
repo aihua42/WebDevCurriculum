@@ -15,9 +15,10 @@ btn.onclick = async () => {
   const userData = { id, pw };
 
   try {
-    const url = 'http://localhost:3000/login';
+    const url = 'http://localhost:8000/login';
     const res = await fetch(url, {
       method: 'POST',
+      credentials: 'include',  // for cors, must be set, unless can't receive session...
       headers: {
         'Content-Type': 'application/json'
       },
@@ -25,8 +26,7 @@ btn.onclick = async () => {
     });
  
     if (!res.ok) {
-      console.log('res of login POST: ', res);
-      console.log('Failed to log in');
+      console.error('Error message from API server during log in; ', err);
       return;
     }
 
@@ -41,6 +41,8 @@ btn.onclick = async () => {
       pwInput.classList.add('error');
       return;
     }
+
+    alert(`Welcome!`, '');
 
     const url2 = `http://localhost:3000/user/${id}`;
     window.location.href = url2;

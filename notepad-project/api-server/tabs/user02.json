@@ -1,21 +1,10 @@
 {
-  "activeTitle": "tite 3",
+  "userId": "user02",
+  "activeTitle": "welcomeText",
   "texts": [
     {
       "title": "welcomeText",
       "text": "\n\n    Welcome!\n\n    Please click 'New Text' button to start your new text!"
-    },
-    {
-      "title": "title 1",
-      "text": "This is text 1..."
-    },
-    {
-      "title": "tite 3",
-      "text": "This is text 3, not saved yet."
-    },
-    {
-      "title": "title 10",
-      "text": ""
     }
   ]
 }

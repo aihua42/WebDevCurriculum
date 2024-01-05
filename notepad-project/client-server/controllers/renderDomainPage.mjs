@@ -1,11 +1,8 @@
-import getPath from '../utility/getPath.mjs';
-
 const renderDomainPage = (req, res) => {
   try {
-    const indexPath = getPath(import.meta.url, 'controllers', ['views', 'index.html']);
-    res.sendFile(indexPath);
+    res.sendFile('index.html');
   } catch(err) {
-    console.error('Error: ', err.message);
+    console.error('Error from rendering domain page: ', err.message);
   }
 };
 

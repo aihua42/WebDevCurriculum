@@ -1,11 +1,14 @@
-import getPath from "../utility/getPath.mjs";
+import path from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const renderLoginPage = (req, res) => {
   try { 
-    const loginPath = getPath(import.meta.url, 'controllers', ['views', 'login.html']);
-    res.sendFile(loginPath);
+    res.sendFile(path.join(process.env.__PUBLIC, 'login.html'));
   } catch(err) {
-    console.error('Error: ', err.message);
+    
+    console.error('Error from rendering login page: ', err.message);
   }
 };
 

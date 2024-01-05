@@ -1,5 +1,5 @@
 import session from 'express-session';  
-import { /*v5 as uuidv5,*/ v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import sessionFileStore from 'session-file-store';
 import dotenv from 'dotenv';
 
@@ -19,7 +19,6 @@ const sessMiddleware = session(
       secure: false,  // true: only transmit cookie over https
       httpOnly: true,  // prevents client side JS from reading the cookie
       expires: false, // will be deleted when the user closes their browser
-      //maxAge: 24 * 60 * 60 * 1000, 1 year // when expires: true
     }
   }
 );

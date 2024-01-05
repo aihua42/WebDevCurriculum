@@ -3,14 +3,14 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const createToken = (id, tokenType) => {
+const createToken = (userId, tokenType) => {
   const secret = tokenType === 'access' ? process.env.ACCESS_SECRET : process.env.REFRESH_SECRET;
-  const maxAge = tokenType === 'access' ? '1m' : '24h';
+  const maxAge = tokenType === 'access' ? '1h' : '24h';
 
   // token
   const token = jwt.sign(
     {
-      id,
+      userId,
       is_logined: true
     }, 
     secret, 

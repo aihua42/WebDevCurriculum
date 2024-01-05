@@ -19,7 +19,7 @@ btn.onclick = async () => {
   const userData = { id, nickname, pw };
 
   try {
-    const url = 'http://localhost:3000/signup';
+    const url = 'http://localhost:8000/signup';
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -29,12 +29,12 @@ btn.onclick = async () => {
     });
 
     if (!res.ok) {
-      console.log('Failed to sign up');
+      console.error('Error message from API server during sign up; ', err);
       return;
     }
 
     if (res.status === 209) {
-      alert(`${id} already exists!`);
+      alert(`${id} already exists!`, '');
       idInput.classList.add('error');
       return;
     }
@@ -44,7 +44,7 @@ btn.onclick = async () => {
     const url2 = 'http://localhost:3000/login';
     window.location.href = url2;
   } catch (err) {
-    console.error('Error during sign up:', err);
+    console.error('Error during sign up; ', err);
   }
 };
 
