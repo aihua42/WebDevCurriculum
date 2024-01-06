@@ -5,7 +5,7 @@ import saveUserData from "../helpers/saveUserData.mjs";
 
 const updateText = async (req, res) => {
   const userId = req.params.userId;
-
+  console.log('params: ', req.params);
   try {
     const textList = await loadUserData(userId, "texts", res);
 

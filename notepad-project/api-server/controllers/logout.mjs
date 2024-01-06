@@ -10,6 +10,18 @@ dotenv.config();
 
 const logoutSess = async (req, res) => {
   const userId = req.session.userId;
+  
+  if (!userId) {
+    return errorHandler(401, 'Unauthorized during logout: User ID is missing', null, res);
+  } 
+
+  if (userId !== req.body.id) {  
+    return errorHandler(401, 'Unauthorized during logout: User ID does NOT match', null, res);
+  } 
+
+  if (!req.session.is_logined) {
+    return errorHandler(401, `Unauthorized during logout: User ${userId} is not logined`, null, res);
+  }
 
   req.session.destroy(async (err) => {
     if (err) {
@@ -30,6 +42,10 @@ const logoutSess = async (req, res) => {
 };
 
 const logoutJWT = async (req, res) => {  
+  if (!req.body.id) {
+    return errorHandler(401, 'Unauthorized during logout: User ID is missing', null, res);
+  } 
+
   try { 
     const accessToken = req.cookies.accessToken;
     const decodedAccess = jwt.verify(accessToken, process.env.ACCESS_SECRET);
