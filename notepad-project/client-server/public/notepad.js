@@ -76,13 +76,13 @@ class Notepad {
 
       return res.json(); 
     })
-    .then((tabs) => {
-      console.log(`${id}'s tabs received:`, tabs);
+    .then((texts) => {
+      console.log(`${id}'s tabs received:`, texts);
 
-      const activeTitle = tabs.activeTitle;
+      const activeTitle = texts.activeTitle;
 
-      const texts = tabs.texts;
-      texts.forEach((titleNtext) => {
+      const { tabs } = texts;
+      tabs.forEach((titleNtext) => {
         const title = titleNtext.title;
         const text = titleNtext.text;
 
@@ -477,13 +477,13 @@ const onclickFuncMap = {
   },
 
   async logout(textContainer) {
-    const id = textContainer.userId;
+    const userId = textContainer.userId;
 
     // if user logout successfully, then send the tabs to the appi server
-    const tabs = {};
-    tabs.userId = id;
-    tabs.activeTitle = textContainer.activeTitle;
-    tabs.texts = [];
+    const texts = {};
+    texts.userId = userId;
+    texts.activeTitle = textContainer.activeTitle;
+    texts.tabs = [];
 
     const textMap = textContainer.textMap;
     Object.keys(textMap).forEach((title) => {
@@ -491,9 +491,9 @@ const onclickFuncMap = {
       titleNtext.title = title;
       titleNtext.text = textMap[title].getText();
 
-      tabs.texts.push(titleNtext);
+      texts.tabs.push(titleNtext);
     });
-    console.log('user tabs: ', tabs);
+    console.log('user tabs: ', texts);
 
     const urlLogout = 'http://localhost:8000/logout';
     await fetch(urlLogout, {
@@ -502,13 +502,13 @@ const onclickFuncMap = {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ id, tabs })
+      body: JSON.stringify(texts)
     })
     .then(async (res) => {
       if (res.status === 401) {
         console.log('Try to refresh the cookie when logging out...');
 
-        const result = await refreshCookie(id);
+        const result = await refreshCookie(userId);
         if (result) {
           const res = await fetch(urlLogout, {
             method: 'POST',
@@ -516,7 +516,7 @@ const onclickFuncMap = {
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id, tabs })
+            body: JSON.stringify({ userId, tabs: texts })
           });
 
           return res;
@@ -580,8 +580,8 @@ function trasformStr(str) {
 
 // fetch functions for 'New Text', 'Open', 'Rename', 'Save', 'Save As', 'Delete' buttons
 async function fetchGet(title, userId) {
-  const id = trasformStr(title);
-  const url = `http://localhost:8000/user/${userId}/${id}`;
+  const textId = trasformStr(title);
+  const url = `http://localhost:8000/user/${userId}/${textId}`;
   
   try {
     const res = await fetch(url, {
@@ -599,14 +599,14 @@ async function fetchGet(title, userId) {
         console.error(`Fail to refresh the cookie in fetchGet title: ${title}`);
       }
     } else if (res.status === 204) {
-      return { id: null, title: null, text: null };
+      return { textId: null, title: null, text: null };
     } else if (res.ok) {
       const dataString = await res.text();
       const data = JSON.parse(dataString);
       console.log(`fetchGet data of ${title}: `, data);
 
       if (data.title !== title) {
-        return { id: data.id, title: title, text: data.text };
+        return { textId: data.textId, title: title, text: data.text };
       } else {
         return data;
       }
@@ -620,8 +620,8 @@ async function fetchGet(title, userId) {
 
 async function fetchPost(title, text, userId) {
   const url = 'http://localhost:8000/user/' + userId;
-  const id = trasformStr(title);
-  const data = { id, title, text };
+  const textId = trasformStr(title);
+  const data = { textId, title, text };
  
   await fetch(url, {
     method: 'POST',
@@ -655,12 +655,12 @@ async function fetchPost(title, text, userId) {
   });
 }
 
-async function fetchPatch(id, key, vals, userId) {
+async function fetchPatch(textId, key, vals, userId) {
   const url = `http://localhost:8000/user/${userId}/${key}`;
   const preVal = vals[0];
   const newVal = vals[1];
   const updatedData = {
-    id: id,
+    textId,
     before: preVal,
     after: newVal
   };
@@ -679,9 +679,9 @@ async function fetchPatch(id, key, vals, userId) {
       console.log(`Try to refresh the cookie in fetchPatch title: ${title}`);
       const result = await refreshCookie(userId);
       if (result) {
-        return await fetchPatch(id, key, vals, userId);
+        return await fetchPatch(textId, key, vals, userId);
       } else {
-        console.error(`Fail to refresh the cookie in fetchPatch target: ${id}`);
+        console.error(`Fail to refresh the cookie in fetchPatch target: ${textId}`);
         return false;
       }
     } else if (!res.ok) {
@@ -695,8 +695,8 @@ async function fetchPatch(id, key, vals, userId) {
 }
 
 async function fetchDelete(title, userId) {
-  const id = trasformStr(title);
-  const url = `http://localhost:8000/user/${userId}/${id}`;
+  const textId = trasformStr(title);
+  const url = `http://localhost:8000/user/${userId}/${textId}`;
   
   await fetch(url, {
     method: 'DELETE',

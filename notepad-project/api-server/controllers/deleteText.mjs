@@ -1,28 +1,26 @@
-import loadUserData from "../helpers/loadUserData.mjs";
-import saveUserData from "../helpers/saveUserData.mjs";
 import errorHandler from "../helpers/errorHandler.mjs";
+import deleteRecode from "../helpers/deleteRecode.mjs";
+import loadDBdata from "../helpers/loadDBdata.mjs";
 
 const deleteText = async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    const textList = await loadUserData(userId, "texts", res);
+    const textId = req.params.textId;
 
-    const id = req.params.id;
-    const findText = textList.find((ele) => ele.id === id);
-    const idx = textList.indexOf(findText);
+    const userDBtextList = await loadDBdata(userId, 'Text', res);
+    const findDBText = userDBtextList.find((ele) => ele.textId === textId);
+    const idxDB = userDBtextList.indexOf(findDBText);
 
-    if (idx === -1) {
-      return res.status(204).json({ success: false, message: "Text not found" });
+    if (idxDB === -1) {
+      return res.status(204).json({ success: false, message: "Text not found in Text DB" });
     }
 
     try {
-      textList.splice(idx, 1);
-      await saveUserData(textList, userId, "texts", res);
-
+      await deleteRecode(userId, 'Text', res, textId);
       res.status(200).json({ success: true, message: "Text successfully deleted" });
     } catch (err) {
-      res.status(204).json({ success: false, message: "Text not found" });
+      res.status(204).json({ success: false, message: "Fail to save the DB data after DELETE text" });
     }
   } catch (err) {
     errorHandler(409, "Failed to response when delete text", err, res);

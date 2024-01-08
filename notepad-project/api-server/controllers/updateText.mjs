@@ -1,43 +1,45 @@
-import loadUserData from "../helpers/loadUserData.mjs";
 import errorHandler from "../helpers/errorHandler.mjs";
 import hasTitle from "../helpers/hasTitle.mjs";
-import saveUserData from "../helpers/saveUserData.mjs";
+import loadDBdata from "../helpers/loadDBdata.mjs";
+
+import db from "../models/index.js";
 
 const updateText = async (req, res) => {
   const userId = req.params.userId;
-  console.log('params: ', req.params);
+  
   try {
-    const textList = await loadUserData(userId, "texts", res);
 
     const key = req.params.key;
-    const { id, before, after } = req.body;
+    const { textId, before, after } = req.body;
 
-    if (key === "title" && hasTitle(after, textList)) {
+    const textDBList = await loadDBdata(userId, 'Text', res);
+    if (key === "title" && hasTitle(after, textDBList)) {
       return errorHandler(409, `Title ${after} already exists!`, null, res);
     }
+    
+    let newObj = {};
+    let where = {};
+    if (key === 'title') {
+      newObj = { textId, title: after };
+      where = { userId, title: before }
+    } else {
+      newObj = { text: after };
+      where = { userId, textId };
+    }
 
-    let isUpdated = false;
-    textList.forEach((obj) => {
-      if (key === "title" && obj.title === before) {
-        isUpdated = true;
-        obj.id = id;
-        obj.title = after;
-      } else if (key === "text" && obj.id === id) {
-        isUpdated = true;
-        obj.text = after;
-      }
+    await db.Text.sync({ alert: true }).then(() => {
+      db.Text.update(newObj, { where }).then((result) => {
+        const [updatedRowsCount] = result;
+
+        if (updatedRowsCount > 0) {
+          res.status(200).json({ success: true, message: "Successfully updated" });
+        } else {
+          return errorHandler(500, `Failed to update the ${key} for ${textId}`, err, res);
+        }
+      })
+    }).catch((err) => {
+      errorHandler(409, 'Fail to sync the Text DB', err.message, err, res);
     });
-
-    if (!isUpdated) {
-      return errorHandler(404, "Nothing to update", null, res);
-    }
-
-    try {
-      await saveUserData(textList, userId, "texts", res);
-      res.status(200).json({ success: true, message: "Successfully updated" });
-    } catch (err) {
-      errorHandler(500, "Failed to save the data in PATCH", err, res);
-    }
   } catch (err) {
     errorHandler(409, "Failed to response PATCH request", err, res);
   }

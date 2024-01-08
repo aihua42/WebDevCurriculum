@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
-import loadUserData from "../helpers/loadUserData.mjs";
 import createToken from "../helpers/createToken.mjs";
 import tokenOptions from "../helpers/tokenOptions.mjs";
 import errorHandler from "../helpers/errorHandler.mjs";
+import loadDBdata from "../helpers/loadDBdata.mjs";
 
 dotenv.config();
 
@@ -31,10 +31,9 @@ const refreshExpiredCookie = async (req, res) => {
     });
   } else if (req.cookies["accessToken"]) {
     let refreshTokenData = {};
+
     try {
-      refreshTokenData = await loadUserData(userId, "tokens", res);
-      console.log("refresh token in /auth endpoint: ", refreshTokenData);
-      console.log("access token in /auth endpoint: ", req.cookies.accessToken);
+      refreshTokenData = await loadDBdata(userId, "Token", res);
     } catch (err) {
       return errorHandler(
         409,
@@ -45,16 +44,15 @@ const refreshExpiredCookie = async (req, res) => {
     }
 
     try {
-      // check if the refreshToken is valid
+      // check if the refreshToken is expired
       const refreshToken = jwt.verify(
         refreshTokenData.token,
         process.env.REFRESH_SECRET
       );
-      console.log("decodedRefresh in /auth endpoint: ", refreshToken);
     } catch (err) {
       return errorHandler(
         409,
-        `Failed to refresh the access token for user ${userId}`,
+        `${userId}'s refreshToken is expired`,
         err,
         res
       );
@@ -62,13 +60,9 @@ const refreshExpiredCookie = async (req, res) => {
 
     try {
       const accessToken = createToken(userId, "access");
-      console.log(
-        "new access token in /auth endpoint: ",
-        req.cookies.accessToken
-      );
 
-      res.cookie("accessToken", accessToken, tokenOptions);
-      res.status(201).json({ success: true, message: "Successfully refresh the token" });
+      await res.cookie("accessToken", accessToken, tokenOptions);
+      res.status(201).json({ success: true, message: "Successfully refresh the access token" });
     } catch (err) {
       errorHandler(
         409,
@@ -78,7 +72,7 @@ const refreshExpiredCookie = async (req, res) => {
       );
     }
   } else {
-    errorHandler(409, `Unknown refresh request from ${userId}`, err, res);
+    errorHandler(409, `Unknown refresh request from ${userId}`, null, res);
   }
 };
 

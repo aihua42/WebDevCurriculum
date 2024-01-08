@@ -1,22 +1,18 @@
-import loadUserData from "../helpers/loadUserData.mjs";
-import errorHandler from "../helpers/errorHandler.mjs";
+import db from "../models/index.js";
 
 const sendText = async (req, res) => {
-  const id = req.params.id;
+  const textId = req.params.textId;
   const userId = req.params.userId;
 
-  try {
-    const textList = await loadUserData(userId, "texts", res);
-    const findText = textList.find((ele) => ele.id === id);
-
-    if (findText) {
-      res.status(200).json(findText);
+  await db.Text.findOne({ where: { userId, textId }}).then((foundText) => {
+    if (foundText === null) {
+      res.status(204).json({ success: false, message: "Text not found in DB" });
     } else {
-      res.status(204).json({ success: false, message: "Text not found" });
+      res.status(200).json(foundText);
     }
-  } catch (err) {
-    errorHandler(409, "Failed to response GET user request", err, res);
-  }
+  }).catch((err) => {
+    res.status(204).json({ success: false, message: "Text not found in DB" });
+  });
 };
 
 export default sendText;

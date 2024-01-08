@@ -10,9 +10,9 @@ const pwInput = document.getElementById('pw');
 const btn = document.querySelector('button');
 
 btn.onclick = async () => {
-  const id = idInput.value;
+  const userId = idInput.value;
   const pw = pwInput.value;
-  const userData = { id, pw };
+  const userData = { userId, pw };
 
   try {
     const url = 'http://localhost:8000/login';
@@ -26,12 +26,12 @@ btn.onclick = async () => {
     });
  
     if (!res.ok) {
-      console.error('Error message from API server during log in; ', err);
+      console.error('Error message from API server during log in; ');
       return;
     }
 
     if (res.status === 204) {
-      alert(`${id} is not found!`, '');
+      alert(`${userId} is not found!`, '');
       idInput.classList.add('error');
       return;
     }
@@ -44,7 +44,7 @@ btn.onclick = async () => {
 
     alert(`Welcome!`, '');
 
-    const url2 = `http://localhost:3000/user/${id}`;
+    const url2 = `http://localhost:3000/user/${userId}`;
     window.location.href = url2;
   } catch (err) {
     console.error('Error during log in:', err);

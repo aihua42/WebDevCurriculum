@@ -12,7 +12,7 @@ const varidate = (req, res, next) => {
   }  
   
   if (req.cookies['connect.sid']) {  
-    console.log('session to check varidation: ', req.session);
+    //console.log('session to check varidation: ', req.session);
     
     if (userId !== req.session.userId) {  
       return errorHandler(401, 'Session Unauthorized: User ID does NOT match', null, res);
@@ -22,7 +22,7 @@ const varidate = (req, res, next) => {
       return errorHandler(401, `Session Unauthorized: : User ${userId} is not logined`, null, res);
     }
   } else if (req.cookies['accessToken']) { 
-    console.log('access token to check varidation: ', req.session);
+    //console.log('access token to check varidation: ', req.session);
    
     try {
       const accessToken = req.cookies.accessToken;

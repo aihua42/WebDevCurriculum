@@ -9,7 +9,7 @@ import sendTabs from "../controllers/sendTabs.mjs";
 const router = express.Router();
 
 // GET method - send the saved text
-router.get('/:userId/:id', sendText);
+router.get('/:userId/:textId', sendText);
 
 // GET method - send tabs
 router.get('/:userId', sendTabs);
@@ -21,7 +21,7 @@ router.post('/:userId', addText);
 router.patch('/:userId/:key', updateText);
 
 // DELETE method - remove from server directory
-router.delete('/:userId/:id', deleteText);
+router.delete('/:userId/:textId', deleteText);
 
 export default router;
 

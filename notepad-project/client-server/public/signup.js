@@ -14,9 +14,9 @@ btn.onclick = async () => {
     return;
   }
 
-  const id = idInput.value;
+  const userId = idInput.value;
   const nickname = document.getElementById('nickname').value;
-  const userData = { id, nickname, pw };
+  const userData = { userId, nickname, pw };
 
   try {
     const url = 'http://localhost:8000/signup';
@@ -29,12 +29,12 @@ btn.onclick = async () => {
     });
 
     if (!res.ok) {
-      console.error('Error message from API server during sign up; ', err);
+      console.error('Error message from API server during sign up; ', res);
       return;
     }
 
     if (res.status === 209) {
-      alert(`${id} already exists!`, '');
+      alert(`${userId} already exists!`, '');
       idInput.classList.add('error');
       return;
     }
