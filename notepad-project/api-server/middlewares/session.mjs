@@ -25,7 +25,6 @@ const sessMiddleware = session(
       secure: false,  // true: only transmit cookie over https
       httpOnly: true,  // prevents client side JS from reading the cookie
       maxAge: 3600000, // Session expires after 1 hour
-      //expires: false, // will be deleted when the user closes their browser
     }
   }
 );
