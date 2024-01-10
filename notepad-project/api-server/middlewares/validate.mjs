@@ -5,7 +5,7 @@ import errorHandler from '../helpers/errorHandler.mjs';
 
 dotenv.config();
 
-const varidate = (req, res, next) => {
+const valiate = (req, res, next) => {
   const userId = req.params.userId;
   if (!userId) {
     return errorHandler(401, 'Unauthorized: User ID is missing', null, res);
@@ -14,25 +14,24 @@ const varidate = (req, res, next) => {
   if (req.cookies['connect.sid']) {  
     
     if (userId !== req.session.userId) {  
-      return errorHandler(401, 'Session Unauthorized: User ID does NOT match', null, res);
+      return errorHandler(401, 'Session Unauthorized - User ID does NOT match', null, res);
     } 
 
     if (!req.session.is_logined) {
-      return errorHandler(401, `Session Unauthorized: : User ${userId} is not logined`, null, res);
+      return errorHandler(401, `Session Unauthorized: - User ${userId} is not logined`, null, res);
     }
   } else if (req.cookies['accessToken']) { 
-   
     try {
       const accessToken = req.cookies.accessToken;
       jwt.verify(accessToken, process.env.ACCESS_SECRET);
     } catch (err) {
-      return errorHandler(401, `JWT Unauthorized: Failed for user ${userId}`, err, res);
+      return errorHandler(401, `AccessToken is expired for user ${userId}`, err, res);
     }
   } else {
-    return errorHandler(401, `Unauthorized: Missing the cookie from ${userId}`, err, res);
+    return errorHandler(409, `Unknown cookie from ${userId}`, null, res);
   }
   
   next();
 };
 
-export default varidate;
+export default valiate;

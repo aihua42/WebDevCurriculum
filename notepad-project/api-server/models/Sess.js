@@ -1,25 +1,29 @@
 const createSessionTable = (sequelize, DataTypes) => {
   const Sess = sequelize.define('Sess', {
+    userId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    is_logined : {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
     sid: {
       type: DataTypes.STRING,
-      primaryKey: true,
       allowNull: false,
-      validate: {
-        notEmpty: true
-      }
     },
-    data: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      validate: {
-        notEmpty: false
-      }
-    }
   },
   {
     tableName: `Sess`,
     freezeTableName: true,
-    timestamps: false
+    timestamps: false,
+    logging: false, // Disable logging
+    indexes: [
+      {
+        unique: true, // set to true if you want a unique index
+        fields: ['userId'],
+      },
+    ],
   });
 
   return Sess;

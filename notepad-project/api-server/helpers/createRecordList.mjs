@@ -1,3 +1,4 @@
+// User, Text, Tab
 const createRecordList = (data, userId, modelName) => {
   const dataList = [];
   
@@ -18,7 +19,7 @@ const createRecordList = (data, userId, modelName) => {
       dataList.push(record);
     });
   } else {
-    const newData = JSON.parse(JSON.stringify(data));  // deep clone
+    const newData = JSON.parse(JSON.stringify(data));  
 
     if (modelName === 'Text') {
       newData.userId = userId;

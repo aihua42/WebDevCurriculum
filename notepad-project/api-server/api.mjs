@@ -26,14 +26,14 @@ app.use(cookieParser()); // jwt는 cookie-parser 가 필요함
 app.use(corsMiddleware); // cors
 app.use(sessMiddleware); // session 발급
 
-app.post("/signup", signup);
-app.post("/login", login);
+app.post("/signup", signup); 
+app.post("/login", login);    
+app.post("/logout", logout);  
 
-app.use("/user/:userId", varidate); // varidation check
+app.use("/user/:userId", varidate); // validation check
 
 app.use("/user", router);
 app.post("/auth", refreshExpiredCookie);
-app.post("/logout", logout);
 
 app.listen(process.env.PORT, () => {
   console.log(

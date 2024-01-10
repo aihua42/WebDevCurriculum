@@ -35,7 +35,7 @@ class Notepad {
     this.loginBtn = btn;
   }
 
-  async #showPrevTabs() {  // page reload 할때마다 실행된다. 중간에 쿠키 만료되면 에러 생김
+  async #showPrevTabs() {  // page reload 할때마다 실행된다. 중간에 쿠키 만료되면 401 에러 생김, 쿠키 refresh 요청을 보냄.
     const url = window.location.href;
     const id = url.split('/user/')[1];
     const btn = this.loginBtn;
@@ -248,7 +248,7 @@ class TextContainer {
       event.stopPropagation();
 
       const textJsonSaved = await fetchGet(title, this.userId); 
-      if (textJsonSaved.text === text || confirm('Okay to leave without save?')) { 
+      if (textJsonSaved.text === text || confirm('Okay to remove from the page without save?')) { 
         this.remove(title);
       } 
     };
@@ -347,10 +347,10 @@ const onclickFuncMap = {
 			return;
 		} 
     
-    if (Object.keys(textContainer.titleMap).indexOf(title) > -1) {
+    if (Object.keys(textContainer.titleMap).indexOf(title) > -1) {  
       textContainer.showTarget(title);
       return;
-    }
+    } 
 
     const textJson = await fetchGet(title, textContainer.userId);   
     console.log('GET in open: ', textJson);
@@ -375,10 +375,10 @@ const onclickFuncMap = {
     }
 
     const findTextJson = await fetchGet(newTitle, textContainer.userId);  
-    console.log('GET in rename working on newTitle: ', findTextJson);
+    console.log('GET in rename, checking if the new title exists: ', findTextJson);
 
     if (findTextJson.text !== null) {
-      alert('Title already exists in system!');
+      alert('Title already exists in the system!');
       return;
     }
     
@@ -387,9 +387,8 @@ const onclickFuncMap = {
     const textTitle = titleMap[title];
     textTitle.setTitle(newTitle);
 
-
     const textSavedJson = await fetchGet(title, textContainer.userId); 
-    console.log('GET in rename working on title: ', textSavedJson);
+    console.log('GET in rename, get text info: ', textSavedJson);
 
     if (textSavedJson.text !== null) { 
       const textId = trasformStr(newTitle);
@@ -467,8 +466,10 @@ const onclickFuncMap = {
     }
 
     const title = Object.keys(activeTextObj)[0]; 
-    textContainer.remove(title);
-    fetchDelete(title, textContainer.userId);
+    const check = fetchDelete(title, textContainer.userId);
+    if (check) {
+      textContainer.remove(title);
+    }
   },
 
   async login() {
@@ -477,23 +478,20 @@ const onclickFuncMap = {
   },
 
   async logout(textContainer) {
-    const userId = textContainer.userId;
+    let texts = {};
+    let isAbnormal = false;
 
+    // logout in a abnormal way, not update the tabs being saved
+    if (!(textContainer instanceof TextContainer)) {
+      isAbnormal = true;
+      texts.userId = textContainer;  // will be userId
+      texts.tabs = [];
+    } 
     // if user logout successfully, then send the tabs to the appi server
-    const texts = {};
-    texts.userId = userId;
-    texts.activeTitle = textContainer.activeTitle;
-    texts.tabs = [];
-
-    const textMap = textContainer.textMap;
-    Object.keys(textMap).forEach((title) => {
-      const titleNtext = {};
-      titleNtext.title = title;
-      titleNtext.text = textMap[title].getText();
-
-      texts.tabs.push(titleNtext);
-    });
-    console.log('user tabs: ', texts);
+    else {
+      texts = tabsToSend(textContainer);
+    }
+    console.log('user tabs to send: ', texts);
 
     const urlLogout = 'http://localhost:8000/logout';
     await fetch(urlLogout, {
@@ -503,31 +501,8 @@ const onclickFuncMap = {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(texts)
-    })
-    .then(async (res) => {
-      if (res.status === 401) {
-        console.log('Try to refresh the cookie when logging out...');
-
-        const result = await refreshCookie(userId);
-        if (result) {
-          const res = await fetch(urlLogout, {
-            method: 'POST',
-            credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ userId, tabs: texts })
-          });
-
-          return res;
-        } else {
-          throw new Error('Fail to refresh the cookie when log out');
-        }
-      }
-
-      return res;
-    })
-    .then((res) => {
+    }) 
+    .then((res) => {  
       if (!res.ok) {
         alert('Failed to log out!');
         return;
@@ -537,7 +512,10 @@ const onclickFuncMap = {
         alert(`Logouted user, can't logout again`);
         return;
       }
-      alert('See you next time!', '');
+
+      if (!isAbnormal) {
+        alert('See you next time!', '');
+      }
 
       const url2 = 'http://localhost:3000';
       window.location.href = url2;
@@ -561,7 +539,11 @@ async function refreshCookie(userId) {
       body: JSON.stringify({ userId })
     });
 
-    if (!res.ok) {
+    if (res.status === 403) {  // refreshToken is expired, will go to login page
+      alert('Timeout, please login again!');
+      onclickFuncMap.logout(userId);
+      return false;
+    } else if (!res.ok) {
       return false;
     } else {
       return true;
@@ -571,7 +553,27 @@ async function refreshCookie(userId) {
   }
 }
 
+// tabs sending to the server
+function tabsToSend(textContainer) {
+  const userId = textContainer.userId;
 
+  // if user logout successfully, then send the tabs to the appi server
+  const texts = {};
+  texts.userId = userId;
+  texts.activeTitle = textContainer.activeTitle;
+  texts.tabs = [];
+
+  const textMap = textContainer.textMap;
+  Object.keys(textMap).forEach((title) => {
+    const titleNtext = {};
+    titleNtext.title = title;
+    titleNtext.text = textMap[title].getText();
+
+    texts.tabs.push(titleNtext);
+  });
+
+  return texts;
+}
 
 // create text id
 function trasformStr(str) {
@@ -592,7 +594,7 @@ async function fetchGet(title, userId) {
     if (res.status === 401) {  // need to refresh the session ID or token
       console.log(`Try to refresh the cookie in fetchGet title: ${title}`);
 
-      const result = refreshCookie(userId);
+      const result = await refreshCookie(userId);
       if (result) {
         return await fetchGet(title, userId);
       } else {
@@ -641,10 +643,7 @@ async function fetchPost(title, text, userId) {
       } else {
         console.error(`Fail to refresh the cookie in fetchPOST title: ${title}`);
       }
-      return;
-    }
-
-    if (res.ok) {
+    } else if (res.ok) {
       alert("Successfully saved!");
     } else {
       alert('Title already exists in the system!', '');
@@ -660,7 +659,7 @@ async function fetchPatch(textId, key, vals, userId) {
   const preVal = vals[0];
   const newVal = vals[1];
   const updatedData = {
-    textId,
+    textId,   // new, if title is changed
     before: preVal,
     after: newVal
   };
@@ -708,12 +707,17 @@ async function fetchDelete(title, userId) {
 
       const result = await refreshCookie(userId);
       if (result) {
-        await fetchDelete(title, userId);
+        return await fetchDelete(title, userId);
       } else {
         console.error(`Fail to refresh the cookie in fetchDelete title: ${title}`);
+        return false;
       }
     } else if (res.ok) {
       alert("Text is deleted!");
-    }  
+      return true;
+    } else {
+      alert("Failed to delete!");
+      return false;
+    }
   });
 }

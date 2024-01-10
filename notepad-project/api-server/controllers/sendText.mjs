@@ -1,18 +1,21 @@
 import db from "../models/index.js";
+import errorHandler from "../helpers/errorHandler.mjs";
 
 const sendText = async (req, res) => {
   const textId = req.params.textId;
   const userId = req.params.userId;
 
-  await db.Text.findOne({ where: { userId, textId }}).then((foundText) => {
+  try {
+    const foundText = await db.Text.findOne({ where: { userId, textId }});
+
     if (foundText === null) {
       res.status(204).json({ success: false, message: "Text not found in DB" });
     } else {
       res.status(200).json(foundText);
     }
-  }).catch((err) => {
-    res.status(204).json({ success: false, message: "Text not found in DB" });
-  });
+  } catch (err) {
+    errorHandler(409, 'Error during try to find the text in Text DB, from "sendText" controller', err, res);
+  }
 };
 
 export default sendText;

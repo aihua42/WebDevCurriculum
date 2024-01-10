@@ -22,7 +22,7 @@ const createTabTable = (sequelize, DataTypes) => {
       }
     },
     text: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
       validate: {
         notEmpty: false
@@ -31,8 +31,11 @@ const createTabTable = (sequelize, DataTypes) => {
   },
   {
     freezeTableName: true,
-    timestamps: false
+    timestamps: false,
+    logging: false, // Disable logging
   });
+
+  Tab.sync({ alter: true });
 
   return Tab;
 };

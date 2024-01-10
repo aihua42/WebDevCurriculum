@@ -22,7 +22,7 @@ const createTextTable = (sequelize, DataTypes) => {
       }
     },
     text: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
       validate: {
         notEmpty: false
@@ -31,8 +31,11 @@ const createTextTable = (sequelize, DataTypes) => {
   },
   {
     freezeTableName: true,
-    timestamps: false
+    timestamps: false,
+    logging: false, // Disable logging
   });
+
+  Text.sync({ alter: true });
 
   return Text;
 };

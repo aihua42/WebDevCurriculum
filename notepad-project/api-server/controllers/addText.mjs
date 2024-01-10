@@ -1,29 +1,48 @@
 import hasTitle from "../helpers/hasTitle.mjs";
 import errorHandler from "../helpers/errorHandler.mjs";
-import addRecode from "../helpers/addRecode.mjs";
+import addRecord from "../helpers/addRecord.mjs";
 import loadDBdata from "../helpers/loadDBdata.mjs";
 
 const addText = async (req, res) => {
   const userId = req.params.userId;
-  console.log(`Saving text from ${userId}'s POST METHOD...`);
-  
+
+  let textList = [];
   try {
-    const { textId, title, text } = req.body;
+    textList = await loadDBdata(userId, "Text");
+  } catch (err) {
+    errorHandler(
+      409,
+      `Error during loading Text data in "addText" controller`,
+      err,
+      res
+    );
+    return;
+  }
 
-    const userDBtextList = await loadDBdata(userId, 'Text', res);  
+  const { textId, title, text } = req.body;
+  if (hasTitle(title, textList)) {
+    errorHandler(
+      409,
+      `Title "${title}" already exists, from "addText" controller`,
+      err,
+      res
+    );
+    return;
+  }
 
-    if (hasTitle(title, userDBtextList)) {
-      return errorHandler(409, `Error message when addText: Title '${title}' already exists`, null, res);
-    }
+  const textToAdd = { textId, title, text };
+  console.log("Text that being added to Text DB: ", textToAdd);
 
-    const newDBText = { textId, title, text };
-    console.log('new Text from user that adding to Text DB: ', newDBText);
-
-    await addRecode(newDBText, userId, 'Text', res);
-
+  try {
+    await addRecord(textToAdd, userId, "Text");
     res.status(201).json({ success: true, message: "Text successfully added!" });
   } catch (err) {
-    errorHandler(409, "Failed to addText.........", err, res);
+    errorHandler(
+      409,
+      'Failed to add text in "addText" controller...',
+      err,
+      res
+    );
   }
 };
 

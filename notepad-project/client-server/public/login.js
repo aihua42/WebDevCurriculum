@@ -26,7 +26,7 @@ btn.onclick = async () => {
     });
  
     if (!res.ok) {
-      console.error('Error message from API server during log in; ');
+      console.error('Error message from API server during log in; ', res);
       return;
     }
 

@@ -24,8 +24,17 @@ const createUserTable = (sequelize, DataTypes) => {
   },
   {
     freezeTableName: true,
-    timestamps: false
+    timestamps: false,
+    logging: false, // Disable logging
+    indexes: [
+      {
+        unique: true, // set to true if you want a unique index
+        fields: ['userId'],
+      },
+    ],
   });
+
+  User.sync({ alter: true });
 
   return User;
 };

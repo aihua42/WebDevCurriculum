@@ -3,16 +3,13 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const createToken = (userId, tokenType) => {
+const createToken = (payloadData, tokenType) => {
   const secret = tokenType === 'access' ? process.env.ACCESS_SECRET : process.env.REFRESH_SECRET;
   const maxAge = tokenType === 'access' ? '1h' : '24h';
-
+  
   // token
   const token = jwt.sign(
-    {
-      userId,
-      is_logined: true
-    }, 
+    payloadData, 
     secret, 
     {
       expiresIn: maxAge,
@@ -20,7 +17,6 @@ const createToken = (userId, tokenType) => {
     }
   );
 
-  console.log(`${tokenType} token: `, jwt.decode(token, secret));
   return token;
 };
 
