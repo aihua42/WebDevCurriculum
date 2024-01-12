@@ -42,6 +42,13 @@ btn.onclick = async () => {
       return;
     }
 
+    const jsonObj = await res.json();
+    console.log('res when login: ', jsonObj);
+  
+    if (jsonObj['refreshToken']) {
+      localStorage.setItem('refreshToken', jsonObj.refreshToken);
+    }
+    
     alert(`Welcome!`, '');
 
     const url2 = `http://localhost:3000/user/${userId}`;

@@ -1,14 +1,14 @@
-import hasTitle from "../helpers/hasTitle.mjs";
+import isInTextList from "../helpers/isInTextDB.mjs";
 import errorHandler from "../helpers/errorHandler.mjs";
-import addRecord from "../helpers/addRecord.mjs";
-import loadDBdata from "../helpers/loadDBdata.mjs";
+
+import db from "../models/index.js";
 
 const addText = async (req, res) => {
   const userId = req.params.userId;
 
   let textList = [];
   try {
-    textList = await loadDBdata(userId, "Text");
+    textList = await db.Text.findAll({ where: { userId } });
   } catch (err) {
     errorHandler(
       409,
@@ -20,7 +20,8 @@ const addText = async (req, res) => {
   }
 
   const { textId, title, text } = req.body;
-  if (hasTitle(title, textList)) {
+
+  if (isInTextList(title, textList)) {
     errorHandler(
       409,
       `Title "${title}" already exists, from "addText" controller`,
@@ -30,12 +31,13 @@ const addText = async (req, res) => {
     return;
   }
 
-  const textToAdd = { textId, title, text };
-  console.log("Text that being added to Text DB: ", textToAdd);
+  const textToAdd = { userId, textId, title, text };
 
   try {
-    await addRecord(textToAdd, userId, "Text");
-    res.status(201).json({ success: true, message: "Text successfully added!" });
+    await db.Text.create(textToAdd);
+    res
+      .status(201)
+      .json({ success: true, message: "Text successfully added!" });
   } catch (err) {
     errorHandler(
       409,

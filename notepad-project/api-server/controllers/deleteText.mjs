@@ -1,14 +1,14 @@
-import hasTitle from "../helpers/hasTitle.mjs";
+import isInTextList from "../helpers/isInTextDB.mjs";
 import errorHandler from "../helpers/errorHandler.mjs";
-import deleteRecord from "../helpers/deleteRecord.mjs";
-import loadDBdata from "../helpers/loadDBdata.mjs";
+
+import db from "../models/index.js";
 
 const deleteText = async (req, res) => {
   const { userId, textId } = req.params;
 
   let textList = [];
   try {
-    textList = await loadDBdata(userId, "Text");
+    textList = await db.Text.findAll({ where: { userId } });
   } catch (err) {
     errorHandler(
       409,
@@ -19,10 +19,10 @@ const deleteText = async (req, res) => {
     return;
   }
 
-  if (!hasTitle(textId, textList, "textId")) {
+  if (!isInTextList(textId, textList, "textId")) {
     errorHandler(
       404,
-      `Title of textId "${textId}" already exists, from "deleteText" controller`,
+      `Title of textId "${textId}" does NOT exist, from "deleteText" controller`,
       err,
       res
     );
@@ -30,8 +30,11 @@ const deleteText = async (req, res) => {
   }
 
   try {
-    await deleteRecord(userId, "Text", textId);
-    res.status(200).json({ success: true, message: "Text successfully deleted" });
+    await db.Text.destroy({ where: { userId, textId } });
+
+    res
+      .status(200)
+      .json({ success: true, message: "Text successfully deleted" });
   } catch (err) {
     errorHandler(
       409,

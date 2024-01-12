@@ -1,5 +1,4 @@
 class Notepad {
-	/* TODO: 그 외에 또 어떤 클래스와 메소드가 정의되어야 할까요? */
 	constructor(titleParentSelector, textParentSelector, loginSelector, interactSelector, interactBtnNameList) {
 		this.titleParentSelector = titleParentSelector;
 		this.textParentSelector = textParentSelector;
@@ -10,7 +9,7 @@ class Notepad {
     this.textContainer = new TextContainer(this.titleParentSelector, this.textParentSelector);
     this.#createLoginBtn();
 		this.#createInteractBtnList();
-    this.#showPrevTabs();
+    this.#loadPrevTabs();
 	}
 
 	#createInteractBtnList() {  
@@ -35,7 +34,7 @@ class Notepad {
     this.loginBtn = btn;
   }
 
-  async #showPrevTabs() {  // page reload 할때마다 실행된다. 중간에 쿠키 만료되면 401 에러 생김, 쿠키 refresh 요청을 보냄.
+  async #loadPrevTabs() {  // page reload 할때마다 실행된다. 
     const url = window.location.href;
     const id = url.split('/user/')[1];
     const btn = this.loginBtn;
@@ -52,55 +51,60 @@ class Notepad {
     console.log(`Trying to get the previous tabs ${this.textContainer.userId}(${id}) worked on...`);
     
     const url2 = `http://localhost:8000/user/${id}`;
-    await fetch(url2, {
+    const res = await fetch(url2, {
       method: 'GET',
       credentials: 'include'  // for cors, must be set include. unless can't send session values which api server set
-    })
-    .then(async (res) => {
-      console.log('res status code when open the user page: ', res.status);
-      if (res.status === 401) {
-        console.log('Try to refresh the cookie when receiving tabs...');
+    });
 
-        const result = await refreshCookie(id);
-        if (result) {  
-          const res = await fetch(url2, {
-            method: 'GET',
-            credentials: 'include'  // for cors, must be set include. unless can't send session values which api server set
-          });
+    if (res.status === 401) { // refresh accessToken if expired
+      const result = refreshAccessToken(this.textContainer);
 
-          return res.json();
-        } else {
-          throw new Error('Fail to refresh the cookie when refresh the page');
-        }
+      if (result) {
+        this.#loadPrevTabs();
       }
 
-      return res.json(); 
-    })
-    .then((texts) => {
-      console.log(`${id}'s tabs received:`, texts);
+      return;
+    } else if (!res.ok) {
+      console.error('Error during loading previous tabs');
+      return;
+    }
 
-      const activeTitle = texts.activeTitle;
-
-      const { tabs } = texts;
-      tabs.forEach((titleNtext) => {
-        const title = titleNtext.title;
-        const text = titleNtext.text;
-
-        if (title !== 'welcomeText') {
-          this.textContainer.add(title, text);
-        }
-      });
-      this.textContainer.showTarget(activeTitle);
-    })
-    .catch((err) => {
-      console.log(`${id}'s first log in`);
-      // new user는 저장되어 있는 previous tabs 없음. texts.forEach 문에서 걸리지만 무시
-    });
+    const prevTabs = await res.json();
+    this.textContainer.setPrevTabs(prevTabs);
 
     // login button changes to logout button
     btn.setSpanInnerText('Logout');
     btn.ele.onclick = () => onclickFuncMap['logout'](this.textContainer);
   }
+}
+
+class ButtonEle {
+	constructor (parentSelector, spanInnerText) {
+		this.parentSelector = parentSelector;
+		this.spanInnerText = spanInnerText;
+
+		this.#createBtnEle();
+		this.#appendBtnEleTo();
+	}
+
+  setSpanInnerText(text) {
+    this.spanInnerText = text;
+    this.ele.querySelector('span').innerText = text;
+  }
+
+	#createBtnEle() {
+    const span = document.createElement('span');
+    span.innerText = this.spanInnerText;
+
+		const buttonEle = document.createElement('button');
+		buttonEle.appendChild(span);
+		buttonEle.type = 'button';
+		this.ele = buttonEle;
+	}
+
+	#appendBtnEleTo() {
+		document.querySelector(this.parentSelector).appendChild(this.ele);
+	}
 }
 
 class TextTitle {
@@ -206,9 +210,10 @@ class TextContainer {
   }
 
   getActiveTextObj() {
-    const title = Object.keys(this.textMap).filter((title) => this.textMap[title].ele.className.indexOf('active') > -1)[0];
+    const textMap = this.textMap;
+    const title = Object.keys(textMap).filter((title) => textMap[title].ele.className.includes('active'))[0];
     const result = {};
-    result[title] = this.textMap[title];
+    result[title] = textMap[title];
     return result;
   }
 
@@ -244,11 +249,16 @@ class TextContainer {
 
     const text = textArea.getText();
     const xBtn = textTitle.btnEle; 
+
     xBtn.onclick = async (event) => {  
       event.stopPropagation();
 
-      const textJsonSaved = await fetchGet(title, this.userId); 
-      if (textJsonSaved.text === text || confirm('Okay to remove from the page without save?')) { 
+      const foundText = await fetchGetText(title, this); 
+      if (foundText === false) {
+        return;
+      }
+
+      if (foundText['text'] === text || confirm('Okay to remove the tab without save?')) { 
         this.remove(title);
       } 
     };
@@ -258,12 +268,13 @@ class TextContainer {
     const idxRemove = Object.keys(this.titleMap).indexOf(title); 
     console.log(`remove title of index: ${idxRemove}`, title);
     
+    const numTitles = Object.keys(this.titleMap).length;
     if (title === this.activeTitle) {
-      const idxActiveNext = idxRemove === 1 ? idxRemove+1 : idxRemove-1;
-      const activeTitleNext = Object.keys(this.titleMap)[idxActiveNext];
-      console.log('active title next: ', activeTitleNext);
+      const idxNextActive = (idxRemove === 1 && numTitles > 2) ? idxRemove+1 : idxRemove-1;
+      const nextActiveTitle = Object.keys(this.titleMap)[idxNextActive];
+      console.log('active title next: ', nextActiveTitle);
 
-      this.showTarget(activeTitleNext);
+      this.showTarget(nextActiveTitle);
     }
     
     this.mapRemoveKeyVal('titleMap', title);
@@ -292,35 +303,47 @@ class TextContainer {
       }
     });
   }
-}
 
-class ButtonEle {
-	constructor (parentSelector, spanInnerText) {
-		this.parentSelector = parentSelector;
-		this.spanInnerText = spanInnerText;
+  setPrevTabs(prevTabs) {  
+    console.log('prevTabs: ', prevTabs);
 
-		this.#createBtnEle();
-		this.#appendBtnEleTo();
-	}
+    if (prevTabs.tabs.length > 0) {
+      const activeTitle = prevTabs.activeTitle;
+      const { tabs } = prevTabs;
+  
+      tabs.forEach((titleNtext) => {
+        const title = titleNtext.title;
+        const text = titleNtext.text;
+  
+        if (title !== 'welcomeText') {
+          this.add(title, text);
+        }
+      });
+  
+      this.showTarget(activeTitle);
+    }
+  } 
 
-  setSpanInnerText(text) {
-    this.spanInnerText = text;
-    this.ele.querySelector('span').innerText = text;
+  getTabs() {
+    const userId = this.userId;
+
+    // if user logout successfully, then send the tabs to the api server
+    const texts = {};
+    texts.userId = userId;
+    texts.activeTitle = this.activeTitle;
+    texts.tabs = [];
+  
+    const textMap = this.textMap;
+    Object.keys(textMap).forEach((title) => {
+      const titleNtext = {};
+      titleNtext.title = title;
+      titleNtext.text = textMap[title].getText();
+  
+      texts.tabs.push(titleNtext);
+    });
+  
+    return texts;
   }
-
-	#createBtnEle() {
-    const span = document.createElement('span');
-    span.innerText = this.spanInnerText;
-
-		const buttonEle = document.createElement('button');
-		buttonEle.appendChild(span);
-		buttonEle.type = 'button';
-		this.ele = buttonEle;
-	}
-
-	#appendBtnEleTo() {
-		document.querySelector(this.parentSelector).appendChild(this.ele);
-	}
 }
 
 const onclickFuncMap = {
@@ -330,10 +353,14 @@ const onclickFuncMap = {
       return;
     }
 
-    const textJson = await fetchGet(title, textContainer.userId); 
+    const textJson = await fetchGetText(title, textContainer); 
     console.log('GET in newText: ', textJson);
 
-    if (textJson.text !== null) { 
+    if (textJson === false) {
+      return;
+    }
+
+    if (textJson['title']) { 
       alert('Title already exists in the system!');
       return;
     }
@@ -347,15 +374,19 @@ const onclickFuncMap = {
 			return;
 		} 
     
-    if (Object.keys(textContainer.titleMap).indexOf(title) > -1) {  
+    if (Object.keys(textContainer.titleMap).includes(title)) {  
       textContainer.showTarget(title);
       return;
     } 
 
-    const textJson = await fetchGet(title, textContainer.userId);   
+    const textJson = await fetchGetText(title, textContainer);   
     console.log('GET in open: ', textJson);
 
-    if (textJson.text !== null) {  
+    if (textJson === false) {
+      return;
+    }
+
+    if (textJson['title']) {  
       textContainer.add(textJson.title, textJson.text);
     } else {
       alert('Text NOT found!');
@@ -374,11 +405,15 @@ const onclickFuncMap = {
       return;
     }
 
-    const findTextJson = await fetchGet(newTitle, textContainer.userId);  
-    console.log('GET in rename, checking if the new title exists: ', findTextJson);
+    const foundTextJson = await fetchGetText(newTitle, textContainer);  
+    console.log('GET in rename, checking if the new title exists: ', foundTextJson);
 
-    if (findTextJson.text !== null) {
-      alert('Title already exists in the system!');
+    if (foundTextJson === false) {
+      return;
+    }
+
+    if (foundTextJson['title']) {
+      alert('New title already exists in the system!');
       return;
     }
     
@@ -387,18 +422,25 @@ const onclickFuncMap = {
     const textTitle = titleMap[title];
     textTitle.setTitle(newTitle);
 
-    const textSavedJson = await fetchGet(title, textContainer.userId); 
-    console.log('GET in rename, get text info: ', textSavedJson);
+    const textJson = await fetchGetText(title, textContainer); 
+    console.log('GET in rename, get text info: ', textJson);
 
-    if (textSavedJson.text !== null) { 
-      const textId = trasformStr(newTitle);
-      await fetchPatch(textId, 'title', [title, newTitle], textContainer.userId);  // update the title immediately
+    if (textJson === false) {
+      return;
+    }
+
+    if (textJson['title']) {  // text being renamed exists in the server, need to update the server as well
+      const textId = transformStr(newTitle);
+      const result = await fetchPatchText(textId, 'title', [title, newTitle], textContainer);  
+
+      if (result === false) {
+        return;
+      }
 
       alert('Successfully renamed!');
     } 
 
-    const keys = Object.keys(textTitle);
-    keys.forEach((key) => {
+    Object.keys(textTitle).forEach((key) => {
       if (key === title) {
         titleMap[newTitle] = titleMap[title];
         textMap[newTitle] = textMap[title];
@@ -421,16 +463,29 @@ const onclickFuncMap = {
 		const title = Object.keys(activeTextObj)[0]; 
 		const text = Object.values(activeTextObj)[0].getText();
 
-    const textSavedJson = await fetchGet(title, textContainer.userId); 
-    console.log('GET in save: ', textSavedJson);
+    const textJson = await fetchGetText(title, textContainer); 
+    console.log('GET in save: ', textJson);
+
+    if (textJson === false) {
+      return;
+    }
     
-    if (textSavedJson.title === null) {
-      fetchPost(title, text, textContainer.userId);  // add to directory
-    } else if (text === textSavedJson.text) {
-      alert('Already saved!');
-    } else {
-      const textId = trasformStr(title);
-      await fetchPatch(textId, 'text', [textSavedJson.text, text], textContainer.userId);  // update the text
+    if (!textJson['title']) { // brand-new text, add to the server
+      const result = fetchPostText(title, text, textContainer); 
+      
+      if (result === false) {
+        return;
+      }
+    } else if (text === textJson.text) {  // already exists in the server, no need to save
+      alert('Saved already!');
+    } else {  // already exists in the server, need to update
+      const textId = transformStr(title);
+      const result = await fetchPatchText(textId, 'text', [textJson.text, text], textContainer);  
+
+      if (result === false) {
+        return;
+      }
+
       alert('Successfully saved!');
     } 
 	},
@@ -446,29 +501,37 @@ const onclickFuncMap = {
       return;
     }
 
-    const findTextJson = await fetchGet(newTitle, textContainer.userId); 
-    console.log('GET in saveAs: ', findTextJson);
+    const textJson = await fetchGetText(newTitle, textContainer); 
+    console.log('GET in saveAs: ', textJson);
 
-    if (findTextJson.text !== null) {
+    if (textJson === false) {
+      return;
+    }
+
+    if (textJson['title']) {
       alert('Title already exists in the system, please rename!', '');
       return;
     }
 
-    
 		const text = Object.values(activeTextObj)[0].getText();
-    fetchPost(newTitle, text, textContainer.userId);
+    fetchPostText(newTitle, text, textContainer);
 	},
 
-  delete(textContainer) {
+  async delete(textContainer) {
     const activeTextObj = textContainer.getActiveTextObj();
     if (textContainer.isWelcomeText(activeTextObj)) {
       return;
     }
 
     const title = Object.keys(activeTextObj)[0]; 
-    const check = fetchDelete(title, textContainer.userId);
-    if (check) {
+    const isDeleted = await fetchDeleteText(title, textContainer);
+
+    if (isDeleted) {
       textContainer.remove(title);
+      alert('Successfully deleted!');
+    } else {
+      alert('Failed to delete!');
+      return;
     }
   },
 
@@ -477,20 +540,8 @@ const onclickFuncMap = {
     window.location.href = url;
   },
 
-  async logout(textContainer) {
-    let texts = {};
-    let isAbnormal = false;
-
-    // logout in a abnormal way, not update the tabs being saved
-    if (!(textContainer instanceof TextContainer)) {
-      isAbnormal = true;
-      texts.userId = textContainer;  // will be userId
-      texts.tabs = [];
-    } 
-    // if user logout successfully, then send the tabs to the appi server
-    else {
-      texts = tabsToSend(textContainer);
-    }
+  async logout(textContainer, pageToGo='welcome') {
+    const texts = textContainer.getTabs();
     console.log('user tabs to send: ', texts);
 
     const urlLogout = 'http://localhost:8000/logout';
@@ -508,27 +559,35 @@ const onclickFuncMap = {
         return;
       }
 
-      if (res.status === 500) {
-        alert(`Logouted user, can't logout again`);
-        return;
-      }
+      localStorage.removeItem('refreshToken');
 
-      if (!isAbnormal) {
-        alert('See you next time!', '');
-      }
+      alert('See you next time!');
 
-      const url2 = 'http://localhost:3000';
-      window.location.href = url2;
+      let urlToGo = '';
+      if (pageToGo === 'login') {
+        urlToGo = 'http://localhost:3000/login';
+      } else {
+        urlToGo = 'http://localhost:3000';
+      }
+      
+      window.location.href = urlToGo;
     })
     .catch((err) => {
-      console.error('Error message from API server during log out; ', err);
+      console.error('Error during log out; ', err);
     })
   }
 }
 
-// fetch function for refreshing the session ID or token
-async function refreshCookie(userId) {
-  const url = 'http://localhost:8000/auth';
+// fetch function for refreshing the accessToken
+async function refreshAccessToken(textContainer) {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) {
+    return false;
+  }
+
+  const userId = textContainer.userId;
+  const url = 'http://localhost:8000/token';
+
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -536,12 +595,13 @@ async function refreshCookie(userId) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ userId })
+      body: JSON.stringify({ userId, refreshToken })
     });
 
-    if (res.status === 403) {  // refreshToken is expired, will go to login page
+    if (res.status === 403) {  // refreshToken is expired, will be logged out and go to login page
       alert('Timeout, please login again!');
-      onclickFuncMap.logout(userId);
+      onclickFuncMap.logout(textContainer,'login');
+
       return false;
     } else if (!res.ok) {
       return false;
@@ -553,37 +613,18 @@ async function refreshCookie(userId) {
   }
 }
 
-// tabs sending to the server
-function tabsToSend(textContainer) {
-  const userId = textContainer.userId;
-
-  // if user logout successfully, then send the tabs to the appi server
-  const texts = {};
-  texts.userId = userId;
-  texts.activeTitle = textContainer.activeTitle;
-  texts.tabs = [];
-
-  const textMap = textContainer.textMap;
-  Object.keys(textMap).forEach((title) => {
-    const titleNtext = {};
-    titleNtext.title = title;
-    titleNtext.text = textMap[title].getText();
-
-    texts.tabs.push(titleNtext);
-  });
-
-  return texts;
-}
-
 // create text id
-function trasformStr(str) {
+function transformStr(str) {
   return str.replaceAll(' ', '-').toLowerCase();
 }
 
 // fetch functions for 'New Text', 'Open', 'Rename', 'Save', 'Save As', 'Delete' buttons
-async function fetchGet(title, userId) {
-  const textId = trasformStr(title);
+async function fetchGetText(title, textContainer) {  console.log('textContainer: ', textContainer);
+  const userId = textContainer.userId;
+  const textId = transformStr(title);
   const url = `http://localhost:8000/user/${userId}/${textId}`;
+
+  let texts = {};
   
   try {
     const res = await fetch(url, {
@@ -592,38 +633,33 @@ async function fetchGet(title, userId) {
     });  
 
     if (res.status === 401) {  // need to refresh the session ID or token
-      console.log(`Try to refresh the cookie in fetchGet title: ${title}`);
+      console.log(`Try to refresh the accessToken in fetchGet for title: ${title}`);
 
-      const result = await refreshCookie(userId);
+      const result = await refreshAccessToken(textContainer);
       if (result) {
-        return await fetchGet(title, userId);
+        texts = await fetchGetText(title, textContainer);
       } else {
-        console.error(`Fail to refresh the cookie in fetchGet title: ${title}`);
+        console.error(`Fail to refresh the accessToken in fetchGet for title: ${title}`);
+        return false;
       }
-    } else if (res.status === 204) {
-      return { textId: null, title: null, text: null };
-    } else if (res.ok) {
-      const dataString = await res.text();
-      const data = JSON.parse(dataString);
-      console.log(`fetchGet data of ${title}: `, data);
-
-      if (data.title !== title) {
-        return { textId: data.textId, title: title, text: data.text };
-      } else {
-        return data;
-      }
-    } else {
-      console.error('Unexpected error: ', res.status);
+    } else if (!res.ok) {
+      console.error('Error during fetchGet with status code: ', res.status);
+    } else if (res.status !== 204) {
+      texts = await res.json();
     }
   } catch(err) {  
     console.error('Error:', err.message);
   }
+
+  return texts;
 }
 
-async function fetchPost(title, text, userId) {
+async function fetchPostText(title, text, textContainer) {
+  const userId = textContainer.userId;
   const url = 'http://localhost:8000/user/' + userId;
-  const textId = trasformStr(title);
+  const textId = transformStr(title);
   const data = { textId, title, text };
+  console.log('texts to send via fetch POST: ', data);
  
   await fetch(url, {
     method: 'POST',
@@ -635,13 +671,14 @@ async function fetchPost(title, text, userId) {
   })
   .then(async (res) => {
     if (res.status === 401) {  // need to refresh the session ID or token
-      console.log(`Try to refresh the cookie in fetchPost title: ${title}`);
+      console.log(`Try to refresh the cookie in fetchPost for title: ${title}`);
 
-      const result = await refreshCookie(userId);
+      const result = await refreshAccessToken(textContainer);
       if (result) {
-        await fetchPost(title, text, userId);
+        await fetchPostText(title, text, textContainer);
       } else {
-        console.error(`Fail to refresh the cookie in fetchPOST title: ${title}`);
+        console.error(`Fail to refresh the accessToken in fetchPOST for title: ${title}`);
+        return false;
       }
     } else if (res.ok) {
       alert("Successfully saved!");
@@ -650,14 +687,16 @@ async function fetchPost(title, text, userId) {
     }
   })
   .catch((err) => {
-    alert('Title already exists in the system!', '');
+    console.error('Error: ', err.message);
   });
 }
 
-async function fetchPatch(textId, key, vals, userId) {
+async function fetchPatchText(textId, key, preNnewVals, textContainer) {
+  const userId = textContainer.userId;
   const url = `http://localhost:8000/user/${userId}/${key}`;
-  const preVal = vals[0];
-  const newVal = vals[1];
+
+  const preVal = preNnewVals[0];
+  const newVal = preNnewVals[1];
   const updatedData = {
     textId,   // new, if title is changed
     before: preVal,
@@ -675,49 +714,55 @@ async function fetchPatch(textId, key, vals, userId) {
     });
 
     if (res.status === 401) {
-      console.log(`Try to refresh the cookie in fetchPatch title: ${title}`);
-      const result = await refreshCookie(userId);
+      console.log(`Try to refresh the cookie in fetchPatch for title: ${title}`);
+
+      const result = await refreshAccessToken(textContainer);
       if (result) {
-        return await fetchPatch(textId, key, vals, userId);
+        return await fetchPatchText(textId, key, preNnewVals, textContainer);
       } else {
-        console.error(`Fail to refresh the cookie in fetchPatch target: ${textId}`);
+        console.error(`Fail to refresh the cookie in fetchPatch for textId: ${textId}`);
         return false;
       }
     } else if (!res.ok) {
+      console.error('Error during fetchPatch with status code: ', res.status);
       return false;
     } else {
       return true;
     }
-  } catch(err) {
+  } catch (err) {
+    console.error('Error: ', err.message);
     return false;
   }
 }
 
-async function fetchDelete(title, userId) {
-  const textId = trasformStr(title);
+async function fetchDeleteText(title, textContainer) {
+  const userId = textContainer.userId;
+  const textId = transformStr(title);
   const url = `http://localhost:8000/user/${userId}/${textId}`;
-  
-  await fetch(url, {
-    method: 'DELETE',
-    credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
-  })
-  .then(async (res) => {
-    if (res.status === 401) {
-      console.log(`Try to refresh the cookie in fetchDelete title: ${title}`);
 
-      const result = await refreshCookie(userId);
+  try {
+    const res = await fetch(url, {
+      method: 'DELETE',
+      credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
+    });
+
+    if (res.status === 401) {
+      console.log(`Try to refresh the cookie in fetchDelete for title: ${title}`);
+
+      const result = await refreshAccessToken(textContainer);
       if (result) {
-        return await fetchDelete(title, userId);
+        return await fetchDeleteText(title, textContainer);
       } else {
-        console.error(`Fail to refresh the cookie in fetchDelete title: ${title}`);
+        console.error(`Fail to refresh the cookie in fetchDelete for title: ${title}`);
         return false;
       }
     } else if (res.ok) {
-      alert("Text is deleted!");
       return true;
     } else {
-      alert("Failed to delete!");
       return false;
     }
-  });
+  } catch (err) {
+    console.error('Error: ', err.message);
+    return false;
+  }
 }

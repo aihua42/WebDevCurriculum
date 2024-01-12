@@ -13,14 +13,9 @@ const SequelizeSessionStore = SequelizeStore(session.Store);
 const store = new SequelizeSessionStore({
   db: sequelize,
   tableName: `Sess`,
-  stringify: (sessionData) => {
-    const { userId, is_logined, ...rest } = sessionData;
-    return JSON.stringify({ userId, is_logined, data: rest })
-  },
-  parse: (serializedData) => {
-    const { userId, is_logined, rest } = JSON.parse(serializedData);
-    return { userId, is_logined, ...rest };
-  },
+  
+  freezeTableName: true,
+  timestamps: false,
 }); 
 
 const sessMiddleware = session(

@@ -2,13 +2,9 @@ import bcrypt from 'bcrypt';
 
 const comparePW = async (pw, hashedpw) => {
   try {
-    const passwordMatches = await bcrypt.compare(pw, hashedpw);
+    const isPasswordMatches = await bcrypt.compare(pw, hashedpw);
 
-    if (passwordMatches) {
-      return true;
-    } else {
-      return false;
-    }
+    return isPasswordMatches;
   } catch (err) {
     throw new Error('Fail in "comparePW" function');
   }

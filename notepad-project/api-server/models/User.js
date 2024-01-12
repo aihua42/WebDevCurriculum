@@ -23,18 +23,17 @@ const createUserTable = (sequelize, DataTypes) => {
     }
   },
   {
+    indexes: [  // this can fix the issue caused by {alter: true}
+      { 
+        fields: ['userId'], 
+        unique: true 
+      }
+    ],
     freezeTableName: true,
     timestamps: false,
-    logging: false, // Disable logging
-    indexes: [
-      {
-        unique: true, // set to true if you want a unique index
-        fields: ['userId'],
-      },
-    ],
   });
 
-  User.sync({ alter: true });
+  User.sync({ alter: true });  // {alter: true} creates new index even if one already exists
 
   return User;
 };

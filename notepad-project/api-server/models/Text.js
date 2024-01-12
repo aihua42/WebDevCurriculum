@@ -23,16 +23,12 @@ const createTextTable = (sequelize, DataTypes) => {
     },
     text: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      validate: {
-        notEmpty: false
-      }
+      allowNull: true
     }
   },
   {
     freezeTableName: true,
     timestamps: false,
-    logging: false, // Disable logging
   });
 
   Text.sync({ alter: true });

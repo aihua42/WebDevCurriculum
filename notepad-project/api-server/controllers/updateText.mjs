@@ -1,5 +1,4 @@
 import errorHandler from "../helpers/errorHandler.mjs";
-import loadDBdata from "../helpers/loadDBdata.mjs";
 
 import db from "../models/index.js";
 
@@ -10,7 +9,7 @@ const updateText = async (req, res) => {
 
   let textList = [];
   try {
-    textList = await loadDBdata(userId, "Text");
+    textList = await db.Text.findAll({ where: { userId } });
   } catch (err) {
     errorHandler(
       409,

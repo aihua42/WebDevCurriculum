@@ -1,23 +1,39 @@
 import errorHandler from "../helpers/errorHandler.mjs";
-import loadDBdata from "../helpers/loadDBdata.mjs";
+
+import db from "../models/index.js";
 
 const sendTabs = async (req, res) => {
   const userId = req.params.userId;
 
-  let tabs = {};
+  let tabRecordList = [];
   try {
-    tabs = await loadDBdata(userId, 'Tab');
+    tabRecordList = await db.Tab.findAll({ where: { userId } });
   } catch (err) {
     errorHandler(409, 'Error during loading Tab data in "sendTabs" controller', err, res);
     return;
   }
 
+  const tabObj = {};
+  tabObj.userId = userId;
+  const textList = [];
+  
+  tabRecordList.forEach((obj) => {
+    if (obj) {
+      textList.push({ title: obj.title, text: obj.text });
+      if (obj.active === true) {
+        tabObj.activeTitle = obj.title;
+      }
+    }
+  });
+
+  tabObj.tabs = textList;
+
   try {
-    const tabsJsonStr = JSON.stringify(tabs);
-    const contentLen = Buffer.from(tabsJsonStr).length;
+    const tabJsonStr = JSON.stringify(tabRecordList);
+    const contentLen = Buffer.from(tabJsonStr).length;
 
     await res.setHeader("Content-Length", contentLen); // net::ERR_CONNECTION_REFUSED
-    await res.send(tabs);  // await 안하면 send 된후 setheader가 완료된다...
+    await res.send(tabObj);  // await 안하면 send 된후 setheader가 완료된다...
   } catch (err) {
     errorHandler(409, 'Failed to load tabs in "sendTabs" controller', err, res);
   }

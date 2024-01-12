@@ -5,14 +5,17 @@ import dotenv from "dotenv";
 
 import corsMiddleware from "./middlewares/cors.mjs";
 import sessMiddleware from "./middlewares/session.mjs";
-import varidate from "./middlewares/validate.mjs";
+import validateSess from "./middlewares/validateSess.mjs";
+import validateJWT from "./middlewares/validateJWT.mjs";
 
 import router from "./routes/user.mjs";
 
 import signup from "./controllers/signup.mjs";
-import login from "./controllers/login.mjs";
-import logout from "./controllers/logout.mjs";
-import refreshExpiredCookie from "./controllers/refreshExpiredCookie.mjs";
+import loginSess from "./controllers/loginSess.mjs";
+import logoutSess from "./controllers/logoutSess.mjs";
+import loginJWT from "./controllers/loginJWT.mjs";
+import logoutJWT from "./controllers/logoutJWT.mjs";
+import refreshAccessToken from "./controllers/refreshAccessToken.mjs";
 
 // set the port
 const app = express();
@@ -26,14 +29,18 @@ app.use(cookieParser()); // jwt는 cookie-parser 가 필요함
 app.use(corsMiddleware); // cors
 app.use(sessMiddleware); // session 발급
 
-app.post("/signup", signup); 
-app.post("/login", login);    
-app.post("/logout", logout);  
+app.post("/signup", signup);
 
-app.use("/user/:userId", varidate); // validation check
+// app.post("/login", loginSess);
+// app.post("/logout", logoutSess);
+// app.use("/user/:userId", validateSess);
+
+app.post("/login", loginJWT);
+app.post("/logout", logoutJWT);
+app.use("/user/:userId", validateJWT); 
 
 app.use("/user", router);
-app.post("/auth", refreshExpiredCookie);
+app.post("/token", refreshAccessToken);
 
 app.listen(process.env.PORT, () => {
   console.log(

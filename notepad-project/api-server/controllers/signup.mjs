@@ -1,29 +1,27 @@
 import errorHandler from "../helpers/errorHandler.mjs";
-import loadDBdata from "../helpers/loadDBdata.mjs";
-import addRecord from "../helpers/addRecord.mjs";
 import hashPW from "../helpers/hashPW.mjs";
+
+import db from "../models/index.js";
 
 const signup = async (req, res) => {
   const { userId, nickname, pw } = req.body;
 
-  let userData = {};
   try {
-    userData = await loadDBdata(userId, "User");
+    const userFound = await db.User.findOne({ where: { userId } });
+    if (userFound) {  // if find nothing matches, return null;
+      errorHandler(209, `${userId} already exists in User DB, from "signup" controller`, null, res);
+      return;
+    }
   } catch (err) {
     errorHandler(409, 'Error during loading User data in "signup" controller, ' + err.message, err, res);
     return;
   }
 
-  if (Object.keys(userData).length > 0) {
-    errorHandler(209, `${userId} already exists in User DB, from "signup" controller`, null, res);
-    return;
-  }
-
   hashPW(pw).then(async (hashedPW) => {
-    userData = { userId, nickname, pw: hashedPW };
+    const userData = { userId, nickname, pw: hashedPW };
 
     try {
-      await addRecord(userData, userId, 'User', res);
+      await db.User.create(userData);
       res.status(201).json({ success: true, message: "Successfully sign up" });
     } catch (err) {
       errorHandler(409, 'Failed to sign up, from "signup" controller', err, res);

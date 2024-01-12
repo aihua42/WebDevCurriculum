@@ -23,16 +23,12 @@ const createTabTable = (sequelize, DataTypes) => {
     },
     text: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      validate: {
-        notEmpty: false
-      }
+      allowNull: true
     }
   },
   {
     freezeTableName: true,
     timestamps: false,
-    logging: false, // Disable logging
   });
 
   Tab.sync({ alter: true });
