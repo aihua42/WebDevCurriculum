@@ -1,7 +1,7 @@
 const a = document.querySelector('#sign-up'); 
 
 a.onclick = () => {
-  const url = 'http://localhost:3000/signup';
+  const url = 'https://localhost:3000/signup';
   window.location.href = url;
 };
 
@@ -15,7 +15,7 @@ btn.onclick = async () => {
   const userData = { userId, pw };
 
   try {
-    const url = 'http://localhost:8000/login';
+    const url = 'https://localhost:8000/login';
     const res = await fetch(url, {
       method: 'POST',
       credentials: 'include',  // for cors, must be set, unless can't receive session...
@@ -51,7 +51,7 @@ btn.onclick = async () => {
     
     alert(`Welcome!`, '');
 
-    const url2 = `http://localhost:3000/user/${userId}`;
+    const url2 = `https://localhost:3000/user/${userId}`;
     window.location.href = url2;
   } catch (err) {
     console.error('Error during log in:', err);

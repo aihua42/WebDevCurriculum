@@ -1,3 +1,5 @@
+import https from 'https';
+import fs from 'fs/promises';
 import express from "express";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
@@ -42,8 +44,22 @@ app.use("/user/:userId", validateJWT);
 app.use("/user", router);
 app.post("/token", refreshAccessToken);
 
-app.listen(process.env.PORT, () => {
-  console.log(
-    `API server has started and is listening on port number: ${process.env.PORT}`
-  );
+// HTTPS server options
+const httpsOptions = {
+  key: await fs.readFile(process.env.__CA + 'api_key.pem'),
+  cert: await fs.readFile(process.env.__CA + 'api_cert.pem'),
+};
+//console.log('httpsOptions of api server: ', httpsOptions);
+
+// HTTPS server
+const httpsServer = https.createServer(httpsOptions, app);
+
+httpsServer.listen(process.env.PORT, (err) => {
+  if (err) {
+    console.error(err);
+  } else {
+    console.log(
+      `API server has started and is listening on port number: ${process.env.PORT}`
+    );
+  }
 });

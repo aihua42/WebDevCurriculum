@@ -19,7 +19,7 @@ btn.onclick = async () => {
   const userData = { userId, nickname, pw };
 
   try {
-    const url = 'http://localhost:8000/signup';
+    const url = 'https://localhost:8000/signup';
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -41,7 +41,7 @@ btn.onclick = async () => {
 
     alert(`Hello ${nickname}! Please log in!`, '');
 
-    const url2 = 'http://localhost:3000/login';
+    const url2 = 'https://localhost:3000/login';
     window.location.href = url2;
   } catch (err) {
     console.error('Error during sign up; ', err);

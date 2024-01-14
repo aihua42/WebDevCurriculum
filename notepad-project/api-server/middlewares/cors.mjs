@@ -5,7 +5,7 @@ dotenv.config();
 
 const corsMiddleware = cors({
   credentials: true,
-  origin: 'http://localhost:' + process.env.PORT_CORS
+  origin: 'https://localhost:' + process.env.PORT_CORS
 });
 
 export default corsMiddleware;

@@ -50,7 +50,7 @@ class Notepad {
     this.textContainer.userId = id; 
     console.log(`Trying to get the previous tabs ${this.textContainer.userId}(${id}) worked on...`);
     
-    const url2 = `http://localhost:8000/user/${id}`;
+    const url2 = `https://localhost:8000/user/${id}`;
     const res = await fetch(url2, {
       method: 'GET',
       credentials: 'include'  // for cors, must be set include. unless can't send session values which api server set
@@ -536,7 +536,7 @@ const onclickFuncMap = {
   },
 
   async login() {
-    const url = 'http://localhost:3000/login';
+    const url = 'https://localhost:3000/login';
     window.location.href = url;
   },
 
@@ -544,7 +544,7 @@ const onclickFuncMap = {
     const texts = textContainer.getTabs();
     console.log('user tabs to send: ', texts);
 
-    const urlLogout = 'http://localhost:8000/logout';
+    const urlLogout = 'https://localhost:8000/logout';
     await fetch(urlLogout, {
       method: 'POST',
       credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
@@ -565,9 +565,9 @@ const onclickFuncMap = {
 
       let urlToGo = '';
       if (pageToGo === 'login') {
-        urlToGo = 'http://localhost:3000/login';
+        urlToGo = 'https://localhost:3000/login';
       } else {
-        urlToGo = 'http://localhost:3000';
+        urlToGo = 'https://localhost:3000';
       }
       
       window.location.href = urlToGo;
@@ -586,7 +586,7 @@ async function refreshAccessToken(textContainer) {
   }
 
   const userId = textContainer.userId;
-  const url = 'http://localhost:8000/token';
+  const url = 'https://localhost:8000/token';
 
   try {
     const res = await fetch(url, {
@@ -622,7 +622,7 @@ function transformStr(str) {
 async function fetchGetText(title, textContainer) {  console.log('textContainer: ', textContainer);
   const userId = textContainer.userId;
   const textId = transformStr(title);
-  const url = `http://localhost:8000/user/${userId}/${textId}`;
+  const url = `https://localhost:8000/user/${userId}/${textId}`;
 
   let texts = {};
   
@@ -656,7 +656,7 @@ async function fetchGetText(title, textContainer) {  console.log('textContainer:
 
 async function fetchPostText(title, text, textContainer) {
   const userId = textContainer.userId;
-  const url = 'http://localhost:8000/user/' + userId;
+  const url = 'https://localhost:8000/user/' + userId;
   const textId = transformStr(title);
   const data = { textId, title, text };
   console.log('texts to send via fetch POST: ', data);
@@ -693,7 +693,7 @@ async function fetchPostText(title, text, textContainer) {
 
 async function fetchPatchText(textId, key, preNnewVals, textContainer) {
   const userId = textContainer.userId;
-  const url = `http://localhost:8000/user/${userId}/${key}`;
+  const url = `https://localhost:8000/user/${userId}/${key}`;
 
   const preVal = preNnewVals[0];
   const newVal = preNnewVals[1];
@@ -738,7 +738,7 @@ async function fetchPatchText(textId, key, preNnewVals, textContainer) {
 async function fetchDeleteText(title, textContainer) {
   const userId = textContainer.userId;
   const textId = transformStr(title);
-  const url = `http://localhost:8000/user/${userId}/${textId}`;
+  const url = `https://localhost:8000/user/${userId}/${textId}`;
 
   try {
     const res = await fetch(url, {
