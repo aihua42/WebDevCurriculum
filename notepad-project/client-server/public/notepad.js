@@ -578,6 +578,11 @@ const onclickFuncMap = {
   }
 }
 
+// create text id
+function transformStr(str) {
+  return str.replaceAll(' ', '-').toLowerCase();
+}
+
 // fetch function for refreshing the accessToken
 async function refreshAccessToken(textContainer) {
   const refreshToken = localStorage.getItem('refreshToken');
@@ -604,22 +609,52 @@ async function refreshAccessToken(textContainer) {
 
       return false;
     } else if (!res.ok) {
-      return false;
+      throw new Error('Error during refresh the access token');
     } else {
       return true;
     }
   } catch (err) {
-    return false;
+    throw err;
   }
 }
 
-// create text id
-function transformStr(str) {
-  return str.replaceAll(' ', '-').toLowerCase();
+async function fetchAfterRefreshToken(...params) {  // refresh the accessToken if get status 401
+  let textContainer;
+  let rest = [];
+
+  params.forEach((param) => {
+    if (param instanceof TextContainer) {
+      textContainer = param;
+    } else {
+      rest.push(param);
+    }
+  });
+
+  if (textContainer === undefined) {
+    throw new Error(`No textContainer found`);
+  }
+
+  try {
+    let res = await fetch(...rest);
+
+    if (res.status === 401) {
+      console.log(`Try to refresh the accessToken`);
+
+      res = await refreshAccessToken(textContainer);
+      if (res) {
+        res = await fetch(...rest);
+      }
+    }
+
+    return res;
+  } catch (err) {
+    throw err;
+  }
 }
 
 // fetch functions for 'New Text', 'Open', 'Rename', 'Save', 'Save As', 'Delete' buttons
-async function fetchGetText(title, textContainer) {  console.log('textContainer: ', textContainer);
+async function fetchGetText(title, textContainer) {
+  console.log('textContainer: ', textContainer);
   const userId = textContainer.userId;
   const textId = transformStr(title);
   const url = `https://localhost:8000/user/${userId}/${textId}`;
@@ -627,28 +662,18 @@ async function fetchGetText(title, textContainer) {  console.log('textContainer:
   let texts = {};
   
   try {
-    const res = await fetch(url, {
+    const res = await fetchAfterRefreshToken(url, {
       method: 'GET',
       credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
-    });  
+    }, textContainer);  
 
-    if (res.status === 401) {  // need to refresh the session ID or token
-      console.log(`Try to refresh the accessToken in fetchGet for title: ${title}`);
-
-      const result = await refreshAccessToken(textContainer);
-      if (result) {
-        texts = await fetchGetText(title, textContainer);
-      } else {
-        console.error(`Fail to refresh the accessToken in fetchGet for title: ${title}`);
-        return false;
-      }
-    } else if (!res.ok) {
+    if (!res.ok) {
       console.error('Error during fetchGet with status code: ', res.status);
     } else if (res.status !== 204) {
       texts = await res.json();
     }
-  } catch(err) {  
-    console.error('Error:', err.message);
+  } catch (err) {
+    console.error('Error: ', err);
   }
 
   return texts;
@@ -661,33 +686,23 @@ async function fetchPostText(title, text, textContainer) {
   const data = { textId, title, text };
   console.log('texts to send via fetch POST: ', data);
  
-  await fetch(url, {
+  await fetchAfterRefreshToken(url, {
     method: 'POST',
     credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
     headers: {
       "Content-Type": "application/json; charset=utf-8"
     },
     body: JSON.stringify(data)
-  })
-  .then(async (res) => {
-    if (res.status === 401) {  // need to refresh the session ID or token
-      console.log(`Try to refresh the cookie in fetchPost for title: ${title}`);
-
-      const result = await refreshAccessToken(textContainer);
-      if (result) {
-        await fetchPostText(title, text, textContainer);
-      } else {
-        console.error(`Fail to refresh the accessToken in fetchPOST for title: ${title}`);
-        return false;
-      }
-    } else if (res.ok) {
+  }, textContainer)
+  .then((res) => {
+    if (res.ok) {
       alert("Successfully saved!");
     } else {
       alert('Title already exists in the system!', '');
     }
   })
   .catch((err) => {
-    console.error('Error: ', err.message);
+    console.error('Error: ', err);
   });
 }
 
@@ -704,33 +719,23 @@ async function fetchPatchText(textId, key, preNnewVals, textContainer) {
   };
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchAfterRefreshToken(url, {
       method: 'PATCH',
       credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
       headers: {
         "Content-Type": "application/json; charset=utf-8"
       },
       body: JSON.stringify(updatedData)
-    });
+    }, textContainer);
 
-    if (res.status === 401) {
-      console.log(`Try to refresh the cookie in fetchPatch for title: ${title}`);
-
-      const result = await refreshAccessToken(textContainer);
-      if (result) {
-        return await fetchPatchText(textId, key, preNnewVals, textContainer);
-      } else {
-        console.error(`Fail to refresh the cookie in fetchPatch for textId: ${textId}`);
-        return false;
-      }
-    } else if (!res.ok) {
+    if (!res.ok) {
       console.error('Error during fetchPatch with status code: ', res.status);
       return false;
     } else {
       return true;
     }
   } catch (err) {
-    console.error('Error: ', err.message);
+    console.error('Error: ', err);
     return false;
   }
 }
@@ -741,28 +746,18 @@ async function fetchDeleteText(title, textContainer) {
   const url = `https://localhost:8000/user/${userId}/${textId}`;
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchAfterRefreshToken(url, {
       method: 'DELETE',
       credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
-    });
+    }, textContainer);
 
-    if (res.status === 401) {
-      console.log(`Try to refresh the cookie in fetchDelete for title: ${title}`);
-
-      const result = await refreshAccessToken(textContainer);
-      if (result) {
-        return await fetchDeleteText(title, textContainer);
-      } else {
-        console.error(`Fail to refresh the cookie in fetchDelete for title: ${title}`);
-        return false;
-      }
-    } else if (res.ok) {
+    if (res.ok) {
       return true;
     } else {
       return false;
     }
   } catch (err) {
-    console.error('Error: ', err.message);
+    console.error('Error: ', err);
     return false;
   }
 }
