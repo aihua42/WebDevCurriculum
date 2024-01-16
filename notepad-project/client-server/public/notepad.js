@@ -618,7 +618,7 @@ async function refreshAccessToken(textContainer) {
   }
 }
 
-async function fetchAfterRefreshToken(...params) {  // refresh the accessToken if get status 401
+async function fetchAfterTokenRefreshed(...params) {  // refresh the accessToken if get status 401
   let textContainer;
   let rest = [];
 
@@ -662,7 +662,7 @@ async function fetchGetText(title, textContainer) {
   let texts = {};
   
   try {
-    const res = await fetchAfterRefreshToken(url, {
+    const res = await fetchAfterTokenRefreshed(url, {
       method: 'GET',
       credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
     }, textContainer);  
@@ -686,7 +686,7 @@ async function fetchPostText(title, text, textContainer) {
   const data = { textId, title, text };
   console.log('texts to send via fetch POST: ', data);
  
-  await fetchAfterRefreshToken(url, {
+  await fetchAfterTokenRefreshed(url, {
     method: 'POST',
     credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
     headers: {
@@ -719,7 +719,7 @@ async function fetchPatchText(textId, key, preNnewVals, textContainer) {
   };
 
   try {
-    const res = await fetchAfterRefreshToken(url, {
+    const res = await fetchAfterTokenRefreshed(url, {
       method: 'PATCH',
       credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
       headers: {
@@ -746,7 +746,7 @@ async function fetchDeleteText(title, textContainer) {
   const url = `https://localhost:8000/user/${userId}/${textId}`;
 
   try {
-    const res = await fetchAfterRefreshToken(url, {
+    const res = await fetchAfterTokenRefreshed(url, {
       method: 'DELETE',
       credentials: 'include',  // for cors, must be set include, unless can't send session values which api server set
     }, textContainer);
