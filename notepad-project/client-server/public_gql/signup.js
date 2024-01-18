@@ -1,4 +1,6 @@
-//import { ApolloClient, InMemoryCache, gql } from '../node_modules/@apollo/client/core/core.cjs';
+// import pkg from '@apollo/client';
+// const { ApolloClient, InMemoryCache, gql } = pkg;
+// import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 
 const idInput = document.getElementById('ID');
 const pwInput = document.getElementById('pw');
@@ -20,24 +22,22 @@ btn.onclick = async () => {
   const nickname = document.getElementById('nickname').value;
 
   try {
-    /*
-    const client = new ApolloClient({
-      uri: 'https://localhost:8080/graphql',
-      credentials: 'include',
-      cache: new InMemoryCache(),  // responses are stored in the cache.
-    });
+    // const client = new ApolloClient({
+    //   uri: 'https://localhost:8080/graphql',
+    //   credentials: 'include',
+    //   cache: new InMemoryCache(),  // responses are stored in the cache.
+    // });
 
-    const SIGNUP_MUTATION = gql`
-      mutation Signup($userId: String!, $nickname: String!, $pw: String!) {
-        signup(userId: ${userId}, nickname: ${nickname}, pw: ${pw}) {}
-      }
-    `;
+    // const SIGNUP_MUTATION = gql`
+    //   mutation Signup($userId: String!, $nickname: String!, $pw: String!) {
+    //     signup(userId: $userId, nickname: $nickname, pw: $pw)
+    //   }
+    // `;
 
-    const res = await client.mutate({
-      mutation: SIGNUP_MUTATION,
-      variables: { userId, nickname, pw },
-    });
-    */
+    // const res = await client.mutate({
+    //   mutation: SIGNUP_MUTATION,
+    //   variables: { userId, nickname, pw },
+    // });
 
     const query = `
       mutation Signup ($userId: String!, $nickname: String!, $pw: String!) {
@@ -58,7 +58,7 @@ btn.onclick = async () => {
       }),
     });
 
-    const resParsed = res.json();
+    const resParsed = await res.json();
     console.log('res from signup: ', resParsed);
 
     if (res.status === 409) {

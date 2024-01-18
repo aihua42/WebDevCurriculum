@@ -15,7 +15,7 @@ dotenv.config();
 // middlewares below
 app.use(morgan('dev'));
 app.use(express.json());
-app.use(express.static(process.env.__PUBLIC_GQL, { type: 'module' }));
+app.use(express.static(process.env.__PUBLIC_GQL));
 
 app.get("/", renderDomainPage);
 
