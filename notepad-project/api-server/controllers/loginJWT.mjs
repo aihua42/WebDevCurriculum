@@ -14,22 +14,22 @@ const loginJWT = async (req, res) => {
   try {
     userData = await db.User.findOne({ where: { userId } });
     if (userData === null) {  
-      errorHandler(204, `${userId} not found, from "loginSess" controller`, null, res);
+      errorHandler(404, `${userId} not found, from "loginSess" controller`, null, res);
       return;
     }
   } catch (err) {
-    errorHandler(409, 'Error during loading User data in "loginSess" controller', err, res);
+    errorHandler(500, 'Error during loading User data in "loginSess" controller', err, res);
     return;
   }
 
   try {
     const checkPW = comparePW(pw, userData.pw);
     if (!checkPW) {
-      errorHandler(209, 'Passwords do not match, from "loginSess" controller', null, res);
+      errorHandler(409, 'Passwords do not match, from "loginSess" controller', null, res);
       return;
     }
   } catch (err) {
-    errorHandler(409, 'Error when compare the passwords, from "loginSess" controller', err, res);
+    errorHandler(500, 'Error when compare the passwords, from "loginSess" controller', err, res);
     return;
   }
 
@@ -42,7 +42,7 @@ const loginJWT = async (req, res) => {
     refreshToken = createToken(userDataCloned, "refresh");
     await db.Token.create({ userId, token: refreshToken });  // refresh token을 서버 DB에 저장해둔다.
   } catch (err) {
-    errorHandler(409, 'Failed to create the refreshToken, from "loginJWT" controller', err, res);
+    errorHandler(500, 'Failed to create the refreshToken, from "loginJWT" controller', err, res);
     return;
   }
 
@@ -53,7 +53,7 @@ const loginJWT = async (req, res) => {
 
     res.status(201).send({ success: true, refreshToken});  // client에게 refresh token을 보내준다.
   } catch (err) {
-    errorHandler(204, `${userId} failed to log in, from "loginJWT" controller`, err, res);
+    errorHandler(500, `${userId} failed to log in, from "loginJWT" controller`, err, res);
   }
 };
 

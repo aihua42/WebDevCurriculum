@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>NotePad</title>
+		<link rel="stylesheet" type="text/css" href="/notepad.css">
+		<script src="/notepad.js"></script>
+	</head>
+	<body>
+		<header>
+			<div class="log-in">
+				<!-- 여기에 log in button  -->
+			</div>
+			<div class="interact">
+        <!-- 여기에 interaction buttons  -->
+			</div>
+		</header>
+    <main class="notepad">
+      <div class="title-area">
+        <!-- 여기에 title tabs -->
+      </div>
+      <div class="text-area">
+        <!-- 여기에 text들 -->
+      </div>
+    </main>
+		<script>
+
+			// interaction button names
+			let interactBtnNameList = ['New Text', 'Open', 'Rename', 'Save', 'Save As', 'Delete'];
+
+			// notepad
+			let notepad = new Notepad('.title-area', '.text-area', '.log-in', '.interact', interactBtnNameList);
+
+		</script>
+	</body>
+</html>
+
+
+
+

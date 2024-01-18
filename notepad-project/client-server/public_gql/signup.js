@@ -1,3 +1,5 @@
+//import { ApolloClient, InMemoryCache, gql } from '../node_modules/@apollo/client/core/core.cjs';
+
 const idInput = document.getElementById('ID');
 const pwInput = document.getElementById('pw');
 const cpwInput = document.getElementById('confirm-pw');
@@ -16,17 +18,48 @@ btn.onclick = async () => {
 
   const userId = idInput.value;
   const nickname = document.getElementById('nickname').value;
-  const userData = { userId, nickname, pw };
 
   try {
-    const url = 'https://localhost:8000/signup';
+    /*
+    const client = new ApolloClient({
+      uri: 'https://localhost:8080/graphql',
+      credentials: 'include',
+      cache: new InMemoryCache(),  // responses are stored in the cache.
+    });
+
+    const SIGNUP_MUTATION = gql`
+      mutation Signup($userId: String!, $nickname: String!, $pw: String!) {
+        signup(userId: ${userId}, nickname: ${nickname}, pw: ${pw}) {}
+      }
+    `;
+
+    const res = await client.mutate({
+      mutation: SIGNUP_MUTATION,
+      variables: { userId, nickname, pw },
+    });
+    */
+
+    const query = `
+      mutation Signup ($userId: String!, $nickname: String!, $pw: String!) {
+        signup(userId: $userId, nickname: $nickname, pw: $pw)
+      }
+    `;
+
+    const url = 'https://localhost:8080/graphql';
     const res = await fetch(url, {
       method: 'POST',
+      credentials: 'include',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userData)
+      body: JSON.stringify({
+        query,
+        variables: { userId, nickname, pw }
+      }),
     });
+
+    const resParsed = res.json();
+    console.log('res from signup: ', resParsed);
 
     if (res.status === 409) {
       alert(`${userId} already exists!`, '');
@@ -41,8 +74,8 @@ btn.onclick = async () => {
 
     alert(`Hello ${nickname}! Please log in!`, '');
 
-    const url2 = 'https://localhost:3000/login';
-    window.location.href = url2;
+    const url2 = 'https://localhost:3030/login';
+    window.location.href = url2;  
   } catch (err) {
     console.error('Error during sign up; ', err);
   }

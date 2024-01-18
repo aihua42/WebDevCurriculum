@@ -9,11 +9,11 @@ const signup = async (req, res) => {
   try {
     const userFound = await db.User.findOne({ where: { userId } });
     if (userFound) {  // if find nothing matches, return null;
-      errorHandler(209, `${userId} already exists in User DB, from "signup" controller`, null, res);
+      errorHandler(409, `${userId} already exists in User DB, from "signup" controller`, null, res);
       return;
     }
   } catch (err) {
-    errorHandler(409, 'Error during loading User data in "signup" controller, ' + err.message, err, res);
+    errorHandler(500, 'Error during loading User data in "signup" controller, ' + err.message, err, res);
     return;
   }
 
@@ -24,7 +24,7 @@ const signup = async (req, res) => {
       await db.User.create(userData);
       res.status(201).json({ success: true, message: "Successfully sign up" });
     } catch (err) {
-      errorHandler(409, 'Failed to sign up, from "signup" controller', err, res);
+      errorHandler(500, 'Failed to sign up, from "signup" controller', err, res);
     }
   })
   .catch((err) => {

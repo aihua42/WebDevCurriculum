@@ -1,7 +1,7 @@
 const a = document.querySelector('#sign-up'); 
 
 a.onclick = () => {
-  const url = 'https://localhost:3000/signup';
+  const url = 'https://localhost:3030/signup';
   window.location.href = url;
 };
 
@@ -13,16 +13,28 @@ btn.onclick = async () => {
   const userId = idInput.value;
   const pw = pwInput.value;
   const userData = { userId, pw };
+  console.log('user data when login: ', userData);
 
   try {
-    const url = 'https://localhost:8000/login';
+    const query = `
+      mutation Login($userId: String!, $pw: String!) {
+        login(userId: $userId, pw: $pw) {
+          refreshToken
+        }
+      }
+    `;
+
+    const url = 'https://localhost:8080/graphql';
     const res = await fetch(url, {
       method: 'POST',
-      credentials: 'include',  // for cors, must be set, unless can't receive session...
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(userData)
+      body: JSON.stringify({
+        query,
+        variables: userData
+      }),
     });
  
     if (!res.ok) {
@@ -43,15 +55,14 @@ btn.onclick = async () => {
     }
 
     const jsonObj = await res.json();
-    console.log('res when login: ', jsonObj);
   
-    if (jsonObj['refreshToken']) {
-      localStorage.setItem('refreshToken', jsonObj.refreshToken);
+    if (jsonObj['data'] && jsonObj['data']['login']) {
+      localStorage.setItem('refreshToken', jsonObj.data.login.refreshToken);
     }
     
     alert(`Welcome!`, '');
 
-    const url2 = `https://localhost:3000/user/${userId}`;
+    const url2 = `https://localhost:3030/user/${userId}`;
     window.location.href = url2;
   } catch (err) {
     console.error('Error during log in:', err);
