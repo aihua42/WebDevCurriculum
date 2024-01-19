@@ -17,7 +17,7 @@ const logoutJWT = async (req, res) => {
   try {
     db.Tab.destroy({ where: { userId } });
   } catch (err) {
-    errorHandler(409, 'Error during destroy the Tab DB in "logoutJWT" controller', err, res);
+    errorHandler(500, 'Error during destroy the Tab DB in "logoutJWT" controller', err, res);
     return;
   }
 
@@ -26,7 +26,7 @@ const logoutJWT = async (req, res) => {
     const tabRecordList = createRecordList(tabsToSave, userId);
     await db.Tab.bulkCreate(tabRecordList);
   } catch (err) {
-    errorHandler(409, 'Error during bulkCreate the Tab DB in "logoutJWT" controller', err, res);
+    errorHandler(500, 'Error during bulkCreate the Tab DB in "logoutJWT" controller', err, res);
     return;
   } 
 
@@ -36,10 +36,9 @@ const logoutJWT = async (req, res) => {
     await res.clearCookie("accessToken");
     res.status(201).json({ success: true, message: "Successfully log out within JWT" });
   } catch (err) {
-    errorHandler(409, 'Error during destroy the Token DB in "logoutJWT" controller', err, res);
+    errorHandler(500, 'Error during destroy the Token DB in "logoutJWT" controller', err, res);
     return;
   }
-  
 };
 
 export default logoutJWT;

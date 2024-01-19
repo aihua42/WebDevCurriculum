@@ -6,12 +6,6 @@ import errorHandler from "../helpers/errorHandler.mjs";
 dotenv.config();
 
 const validateJWT = (req, res, next) => {
-  const userId = req.params.userId;
-  
-  if (!userId) {
-    return errorHandler(409, 'User ID is missing in "validateJWT" middleware', null, res);
-  }
-
   try {
     const accessToken = req.cookies.accessToken;
     jwt.verify(accessToken, process.env.ACCESS_SECRET);

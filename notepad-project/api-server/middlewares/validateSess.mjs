@@ -1,13 +1,6 @@
 import errorHandler from "../helpers/errorHandler.mjs";
 
 const validateSess = async (req, res, next) => {
-  const userId = req.params.userId;
-
-  if (!userId) {
-    errorHandler(409, 'User ID is missing in "validateSess" middleware', null, res);
-    return;
-  }
-
   const userData = await req.session.userData;
 
   if (userData.userId !== userId) {

@@ -731,6 +731,9 @@ async function fetchPatchText(textId, key, preNnewVals, textContainer) {
     if (!res.ok) {
       console.error('Error during fetchPatch with status code: ', res.status);
       return false;
+    } else if (res.status === 209) {
+      alert('No changes to save!');
+      return false;
     } else {
       return true;
     }

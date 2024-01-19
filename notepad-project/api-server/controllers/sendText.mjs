@@ -14,7 +14,7 @@ const sendText = async (req, res) => {
       res.status(200).json(foundText);
     }
   } catch (err) {
-    errorHandler(409, 'Error during try to find the text in Text DB, from "sendText" controller', err, res);
+    errorHandler(500, 'Error during try to find the text in Text DB, from "sendText" controller', err, res);
   }
 };
 

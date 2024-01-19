@@ -9,34 +9,22 @@ const sendTabs = async (req, res) => {
   try {
     tabRecordList = await db.Tab.findAll({ where: { userId } });
   } catch (err) {
-    errorHandler(409, 'Error during loading Tab data in "sendTabs" controller', err, res);
+    errorHandler(500, 'Error during loading Tab data in "sendTabs" controller', err, res);
     return;
   }
 
   const tabObj = {};
   tabObj.userId = userId;
-  const textList = [];
-  
-  tabRecordList.forEach((obj) => {
-    if (obj) {
-      textList.push({ title: obj.title, text: obj.text });
-      if (obj.active === true) {
-        tabObj.activeTitle = obj.title;
-      }
+
+  const textList = tabRecordList.map((record) => {
+    if (record.active === true) {
+      tabObj.activeTitle = record.title;
     }
+    return { title: record.title, text: record.text };
   });
 
   tabObj.tabs = textList;
-
-  try {
-    const tabJsonStr = JSON.stringify(tabRecordList);
-    const contentLen = Buffer.from(tabJsonStr).length;
-
-    await res.setHeader("Content-Length", contentLen); // net::ERR_CONNECTION_REFUSED
-    await res.send(tabObj);  // await 안하면 send 된후 setheader가 완료된다...
-  } catch (err) {
-    errorHandler(409, 'Failed to load tabs in "sendTabs" controller', err, res);
-  }
+  res.send(tabObj); 
 };
 
 export default sendTabs;

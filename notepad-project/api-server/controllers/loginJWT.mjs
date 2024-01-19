@@ -18,7 +18,7 @@ const loginJWT = async (req, res) => {
       return;
     }
   } catch (err) {
-    errorHandler(409, 'Error during loading User data in "loginSess" controller', err, res);
+    errorHandler(500, 'Error during loading User data in "loginSess" controller', err, res);
     return;
   }
 
@@ -29,7 +29,7 @@ const loginJWT = async (req, res) => {
       return;
     }
   } catch (err) {
-    errorHandler(409, 'Error when compare the passwords, from "loginSess" controller', err, res);
+    errorHandler(500, 'Error when compare the passwords, from "loginSess" controller', err, res);
     return;
   }
 
@@ -42,7 +42,7 @@ const loginJWT = async (req, res) => {
     refreshToken = createToken(userDataCloned, "refresh");
     await db.Token.create({ userId, token: refreshToken });  // refresh token을 서버 DB에 저장해둔다.
   } catch (err) {
-    errorHandler(409, 'Failed to create the refreshToken, from "loginJWT" controller', err, res);
+    errorHandler(500, 'Failed to create the refreshToken, from "loginJWT" controller', err, res);
     return;
   }
 
@@ -51,9 +51,9 @@ const loginJWT = async (req, res) => {
     const accessToken = createToken(userDataCloned, "access");
     await res.cookie("accessToken", accessToken, cookieOptions); 
 
-    res.status(201).send({ success: true, refreshToken});  // client에게 refresh token을 보내준다.
+    await res.status(201).send({ success: true, refreshToken});  // client에게 refresh token을 보내준다.
   } catch (err) {
-    errorHandler(204, `${userId} failed to log in, from "loginJWT" controller`, err, res);
+    errorHandler(500, `${userId} failed to log in, from "loginJWT" controller`, err, res);
   }
 };
 

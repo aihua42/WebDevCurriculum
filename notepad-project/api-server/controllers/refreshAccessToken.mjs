@@ -46,7 +46,7 @@ const refreshAccessToken = async (req, res) => {
     }
   } catch (err) {
     errorHandler(
-      409,
+      500,
       'Failed to load the refreshToken, from "refreshAccessToken" controller',
       null,
       res

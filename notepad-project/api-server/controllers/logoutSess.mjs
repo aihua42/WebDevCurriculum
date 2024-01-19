@@ -15,7 +15,7 @@ const logoutSess = async (req, res) => {
   try {
     db.Tab.destroy({ where: { userId } });
   } catch (err) {
-    errorHandler(409, 'Error during destroy the Tab DB in "logoutSess" controller', err, res);
+    errorHandler(500, 'Error during destroy the Tab DB in "logoutSess" controller', err, res);
     return;
   }
 
@@ -24,13 +24,13 @@ const logoutSess = async (req, res) => {
     const tabRecordList = createRecordList(tabsToSave, userId);
     await db.Tab.bulkCreate(tabRecordList);
   } catch (err) {
-    errorHandler(409, 'Error during bulkCreate the Tab DB in "logoutSess" controller', err, res);
+    errorHandler(500, 'Error during bulkCreate the Tab DB in "logoutSess" controller', err, res);
     return;
   } 
 
   req.session.destroy(async (err) => {
     if (err) {
-      errorHandler(409, `Failed to destroy the session in "logoutSess" controller`, err, res);
+      errorHandler(500, `Failed to destroy the session in "logoutSess" controller`, err, res);
     } else {
       await res.clearCookie("connect.sid");
       res.status(201).json({ success: true, message: "Successfully logout within session" });

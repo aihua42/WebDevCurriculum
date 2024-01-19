@@ -30,7 +30,6 @@ const httpsOptions = {
   key: await fs.readFile(process.env.__CA + 'client_key.pem'),
   cert: await fs.readFile(process.env.__CA + 'client_cert.pem'),
 };
-//console.log('httpsOptions of client server: ', httpsOptions);
 
 // HTTPS server
 const httpsServer = https.createServer(httpsOptions, app);

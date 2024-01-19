@@ -11,7 +11,7 @@ const deleteText = async (req, res) => {
     textList = await db.Text.findAll({ where: { userId } });
   } catch (err) {
     errorHandler(
-      409,
+      500,
       'Error during loading Text data in "deleteText" controller',
       err,
       res
@@ -32,12 +32,10 @@ const deleteText = async (req, res) => {
   try {
     await db.Text.destroy({ where: { userId, textId } });
 
-    res
-      .status(200)
-      .json({ success: true, message: "Text successfully deleted" });
+    res.status(200).json({ success: true, message: "Text successfully deleted" });
   } catch (err) {
     errorHandler(
-      409,
+      500,
       'Failed to delete text in "deleteText" controller...',
       err,
       res

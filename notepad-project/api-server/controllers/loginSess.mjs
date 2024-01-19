@@ -16,7 +16,7 @@ const loginSess = async (req, res) => {
       return;
     }
   } catch (err) {
-    errorHandler(409, 'Error during loading User data in "loginSess" controller', err, res);
+    errorHandler(500, 'Error during loading User data in "loginSess" controller', err, res);
     return;
   }
 
@@ -27,7 +27,7 @@ const loginSess = async (req, res) => {
       return;
     }
   } catch (err) {
-    errorHandler(409, 'Error when compare the passwords, from "loginSess" controller', err, res);
+    errorHandler(500, 'Error when compare the passwords, from "loginSess" controller', err, res);
     return;
   }
 
@@ -41,7 +41,7 @@ const loginSess = async (req, res) => {
 
     res.status(201).json({ success: true, message: "Successfully login within session" });
   } catch (err) {
-    errorHandler(204, `${userId} failed to log in, in "loginSess" controller`, err, res);
+    errorHandler(500, `${userId} failed to log in, in "loginSess" controller`, err, res);
   }
 };
 
