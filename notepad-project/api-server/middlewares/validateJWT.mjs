@@ -12,7 +12,7 @@ const validateJWT = (req, res, next) => {
   } catch (err) {
     return errorHandler(
       401,
-      `AccessToken is expired for user ${userId}`,
+      `AccessToken is expired`,
       err,
       res
     );
