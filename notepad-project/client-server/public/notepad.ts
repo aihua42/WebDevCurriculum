@@ -41,10 +41,13 @@ function createBtn(spanInnerText: string) {
 class TextTitle {
   private parentSelector: string;
 
+  private textContainer: TextContainer;
+
   private ele: HTMLDivElement;
 
-  constructor(parentSelector: string) {
+  constructor(parentSelector: string, textContainer: TextContainer) {
     this.parentSelector = parentSelector;
+    this.textContainer = textContainer;
     this.ele = this.createTitleInputContainer();
   }
 
@@ -54,8 +57,17 @@ class TextTitle {
     inputEle.readOnly = true;
 
     const btnEle = createBtn('x');
+    btnEle.onclick = async (event) => {
+      event.stopPropagation();
+      await this.textContainer.makeNoteRemovable(this.getTitle());
+    };
+
     const divEle: HTMLDivElement = document.createElement('div');
     divEle.append(inputEle, btnEle);
+
+    divEle.onclick = () => {
+      this.textContainer.showActiveNote(this.getTitle());
+    };
 
     const parentNode = document.querySelector(this.parentSelector);
     if (parentNode) {
@@ -63,12 +75,6 @@ class TextTitle {
     }
 
     return divEle;
-  }
-
-  makeTitleClickable(textContainer: TextContainer) {
-    this.ele.onclick = () => {
-      textContainer.showActiveNote(this.getTitle());
-    };
   }
 
   getTitle(): string {
@@ -87,23 +93,19 @@ class TextTitle {
     this.ele.classList.toggle('active', force);
   }
 
-  remove(toBeRemoved: boolean): boolean {
-    let isRemoved = false;
+  remove() {
+    /*
     const xBtn = this.ele.querySelector('button');
     if (!xBtn) {
-      return isRemoved;
+      return;
     }
 
     xBtn.onclick = (event) => {
       event.stopPropagation();
-
-      if (toBeRemoved || confirm('Are you sure to close the tab without saving?')) {
-        this.ele.remove();
-        isRemoved = true;
-      }
+      this.ele.remove();
     };
-
-    return isRemoved;
+    */
+    this.ele.remove();
   }
 }
 
@@ -215,18 +217,13 @@ class TextContainer {
     this.activeTitle = activeTitle;
 
     this.noteList.forEach((note) => {
-      if (note.textTitle) {
-        note.textTitle.setActive(note.title === activeTitle);
-      }
-
-      if (note.textArea) {
-        note.textArea.setActive(note.title === activeTitle);
-      }
+      note.textTitle?.setActive(note.title === activeTitle);
+      note.textArea?.setActive(note.title === activeTitle);
     });
   }
 
   addNote(titleVal: string, textVal = '') {
-    const textTitle = new TextTitle(this.titleParentSelector);
+    const textTitle = new TextTitle(this.titleParentSelector, this);
     textTitle.setTitle(titleVal);
 
     const textArea = new TextArea(this.textParentSelector);
@@ -239,14 +236,11 @@ class TextContainer {
     };
     this.noteList.push(note);
     this.showActiveNote(titleVal);
-
-    textTitle.makeTitleClickable(this);
-    this.makeNoteRemovable(note);
+    // this.makeNoteRemovable(note);
   }
 
-  private async makeNoteRemovable(note: Note) {
-    const { title, textTitle, textArea } = note;
-    if (title === 'welcomeText' || !textTitle) { // title = 'welcomeText'일때 textTitle = undefined
+  async makeNoteRemovable(title: string) {
+    if (title === 'welcomeText') { // title = 'welcomeText'일때 textTitle = undefined
       return;
     }
 
@@ -255,17 +249,22 @@ class TextContainer {
       return;
     }
 
-    const text = textArea.getText();
-    const removeCondition = !('text' in foundText) || foundText.text === text; // 빈 textarea거나 수정사항이 없을 때 그냥 닫음
-    const isRemoved = textTitle.remove(removeCondition);
+    const foundNote = this.noteList.find((note) => note.title === title);
+    if (foundNote === undefined) {
+      console.error('Note to remove not found!');
+      return;
+    }
 
-    if (isRemoved) {
-      textArea.remove();
-      this.removeNote(note);
+    const { textArea } = foundNote;
+    const text = textArea.getText();
+    const isToBeRemoved = !('text' in foundText) || foundText.text === text || confirm('Are you sure to close the tab without saving?'); // 빈 textarea거나 수정사항이 없을 때 그냥 닫음
+
+    if (isToBeRemoved) {
+      this.remove(foundNote);
     }
   }
 
-  removeNote(note: Note) {
+  remove(note: Note) {
     const { title } = note;
     if (title === 'welcomeText') {
       return;
@@ -284,6 +283,8 @@ class TextContainer {
       this.showActiveNote(nextActiveTitle);
     }
 
+    note.textTitle?.remove();
+    note.textArea.remove();
     noteList.splice(idxRemove, 1);
   }
 
@@ -356,13 +357,7 @@ async function logout(textContainer: TextContainer, pageToGo = 'welcome') {
 
       alert('See you next time!');
 
-      let urlToGo = '';
-      if (pageToGo === 'login') {
-        urlToGo = 'https://localhost:3000/login';
-      } else {
-        urlToGo = 'https://localhost:3000';
-      }
-
+      const urlToGo = pageToGo === 'welcome' ? 'https://localhost:3000' : 'https://localhost:3000/login';
       window.location.href = urlToGo;
     })
     .catch((err) => {
@@ -409,6 +404,7 @@ async function fetchAfterTokenRefreshed(...params: [string, object, TextContaine
       textContainer = param;
       return false;
     }
+
     return true;
   });
 
@@ -474,11 +470,7 @@ async function fetchPostText(title: string, text: string, textContainer: TextCon
     body: JSON.stringify(data),
   }, textContainer)
     .then((res) => {
-      if (res.ok) {
-        alert('Successfully saved!');
-      } else {
-        alert('Title already exists in the system!');
-      }
+      alert(res.ok ? 'Successfully saved!' : 'Title already exists in the system!');
     })
     .catch((err) => {
       console.error('Error: ', err);
@@ -510,10 +502,13 @@ async function fetchPatchText(textId: string, key: string, preNnewVals: string[]
     if (!res.ok) {
       console.error('Error during fetchPatch with status code: ', res.status);
       return false;
-    } if (res.status === 209) {
+    }
+
+    if (res.status === 209) {
       alert('No changes to save!');
       return false;
     }
+
     return true;
   } catch (err) {
     console.error('Error: ', err);
@@ -532,10 +527,7 @@ async function fetchDeleteText(title: string, textContainer: TextContainer) {
       credentials: 'include', // for cors, must be set include, unless can't send session values which api server set
     }, textContainer);
 
-    if (res.ok) {
-      return true;
-    }
-    return false;
+    return res.ok;
   } catch (err) {
     console.error('Error: ', err);
     return false;
@@ -705,7 +697,7 @@ const onclickFuncMap: OnclickFuncMap = {
     const isDeleted = await fetchDeleteText(title, textContainer);
 
     if (isDeleted) {
-      textContainer.removeNote(activeNote);
+      textContainer.remove(activeNote);
       alert('Successfully deleted!');
     } else {
       alert('Failed to delete!');
@@ -787,6 +779,10 @@ class Notepad {
       return;
     }
 
+    // login button changes to logout button
+    (loginBtn.querySelector('span') as HTMLSpanElement).innerText = 'Logout';
+    loginBtn.onclick = () => logout(this.textContainer);
+
     // 일단 웰컴 페이지의 웰컴 구문을 바꿔준다.
     this.textContainer.getActiveNote().textArea.setText('\n\n    Welcome!\n\n    Please click \'New Text\' button to start your new text!');
     this.textContainer.setUser(userId);
@@ -813,9 +809,5 @@ class Notepad {
 
     const prevTabs = await res.json();
     this.textContainer.setPrevTabs(prevTabs);
-
-    // login button changes to logout button
-    (loginBtn.querySelector('span') as HTMLSpanElement).innerText = 'Logout';
-    loginBtn.onclick = () => logout(this.textContainer);
   }
 }

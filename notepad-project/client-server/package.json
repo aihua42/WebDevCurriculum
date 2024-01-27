@@ -1,7 +1,6 @@
 {
   "name": "client-server",
   "version": "1.0.0",
-  "type": "module",
   "description": "client server of notepad project",
   "main": "client.ts",
   "scripts": {
