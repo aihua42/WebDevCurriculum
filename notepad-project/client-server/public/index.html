@@ -5,7 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>NotePad</title>
 		<link rel="stylesheet" type="text/css" href="/notepad.css">
-		<script src="/notepad.js"></script>
+		<script src="/index.js"></script>
 	</head>
 	<body>
 		<header>
@@ -30,7 +30,8 @@
 			let interactBtnNameList = ['New Text', 'Open', 'Rename', 'Save', 'Save As', 'Delete'];
 
 			// notepad
-			let notepad = new Notepad('.title-area', '.text-area', '.log-in', '.interact', interactBtnNameList);
+			//let notepad = new Notepad('.title-area', '.text-area', '.log-in', '.interact', interactBtnNameList);
+			let notepad = createNotepad('.title-area', '.text-area', '.log-in', '.interact', interactBtnNameList);
 
 		</script>
 	</body>

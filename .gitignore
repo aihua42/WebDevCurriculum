@@ -7,5 +7,5 @@ bower_components/*
 **/Thumbs.db
 npm-debug.log
 
-**/config/*
+notepad-project/api-server/config/
 *.env

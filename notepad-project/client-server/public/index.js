@@ -18,113 +18,83 @@ function createBtn(spanInnerText) {
   button.type = 'button';
   return button;
 }
-class TextTitle {
-  constructor(parentSelector, textContainer) {
-    this.parentSelector = parentSelector;
-    this.textContainer = textContainer;
-    this.ele = this.createTitleInputContainer();
-  }
-
-  createTitleInputContainer() {
+function createTextTitle(parentSelector, makeNoteRemovable, showActiveNote) {
+  const ele = createTitleInputContainer();
+  function createTitleInputContainer() {
     const inputEle = document.createElement('input');
     inputEle.type = 'button';
     inputEle.readOnly = true;
     const btnEle = createBtn('x');
-    btnEle.onclick = (event) => __awaiter(this, void 0, void 0, function* () {
+    btnEle.onclick = (event) => {
       event.stopPropagation();
-      yield this.textContainer.makeNoteRemovable(this.getTitle());
-    });
+      makeNoteRemovable(getTitle());
+    };
     const divEle = document.createElement('div');
     divEle.append(inputEle, btnEle);
     divEle.onclick = () => {
-      this.textContainer.showActiveNote(this.getTitle());
+      showActiveNote(getTitle());
     };
-    const parentNode = document.querySelector(this.parentSelector);
-    if (parentNode) {
-      parentNode.appendChild(divEle);
-    }
+    const parentNode = document.querySelector(parentSelector);
+    parentNode === null || parentNode === void 0 ? void 0 : parentNode.appendChild(divEle);
     return divEle;
   }
-
-  getTitle() {
-    const inputEle = this.ele.querySelector('input');
-    return inputEle ? inputEle.value : '';
+  function getTitle() {
+    const inputEle = ele.querySelector('input');
+    return inputEle.value;
   }
-
-  setTitle(value) {
-    const inputEle = this.ele.querySelector('input');
-    if (inputEle) {
-      inputEle.value = value;
-    }
+  function setTitle(value) {
+    const inputEle = ele.querySelector('input');
+    inputEle.value = value;
   }
-
-  setActive(force) {
-    this.ele.classList.toggle('active', force);
+  function setActive(force) {
+    ele.classList.toggle('active', force);
   }
-
-  remove() {
-    /*
-        const xBtn = this.ele.querySelector('button');
-        if (!xBtn) {
-          return;
-        }
-
-        xBtn.onclick = (event) => {
-          event.stopPropagation();
-          this.ele.remove();
-        };
-        */
-    this.ele.remove();
+  function remove() {
+    ele.remove();
   }
+  return {
+    getTitle,
+    setTitle,
+    setActive,
+    remove,
+  };
 }
-class TextArea {
-  constructor(parentSelector, readOnly = false) {
-    this.parentSelector = parentSelector;
-    this.readOnly = readOnly;
-    this.ele = this.createTextAreaEle();
-  }
-
-  createTextAreaEle() {
+function createTextArea(parentSelector, readOnly = false) {
+  const ele = createTextAreaEle();
+  function createTextAreaEle() {
     const textareaEle = document.createElement('textarea');
-    textareaEle.readOnly = this.readOnly;
-    textareaEle.placeholder = this.readOnly ? '' : 'Start your text here';
-    const parentNode = document.querySelector(this.parentSelector);
-    if (parentNode) {
-      parentNode.appendChild(textareaEle);
-    }
+    textareaEle.readOnly = readOnly;
+    textareaEle.placeholder = readOnly ? '' : 'Start your text here';
+    const parentNode = document.querySelector(parentSelector);
+    parentNode === null || parentNode === void 0 ? void 0 : parentNode.appendChild(textareaEle);
     return textareaEle;
   }
-
-  getText() {
-    return this.ele.value;
+  function getText() {
+    return ele.value;
   }
-
-  setText(value, fontSize = '') {
-    this.ele.value = value;
-    if (fontSize) {
-      this.ele.style.fontSize = fontSize;
-    }
+  function setText(value, fontSize = '') {
+    ele.value = value;
+    fontSize && (ele.style.fontSize = fontSize);
   }
-
-  setActive(force) {
-    this.ele.classList.toggle('active', force);
+  function setActive(force) {
+    ele.classList.toggle('active', force);
   }
-
-  remove() {
-    this.ele.remove();
+  function remove() {
+    ele.remove();
   }
+  return {
+    getText,
+    setText,
+    setActive,
+    remove,
+  };
 }
-class TextContainer {
-  constructor(titleParentSelector, textParentSelector) {
-    this.titleParentSelector = titleParentSelector;
-    this.textParentSelector = textParentSelector;
-    this.noteList = this.createNoteList();
-    this.activeTitle = 'welcomeText';
-    this.userId = undefined;
-  }
-
-  createNoteList() {
-    const welcomeText = new TextArea(this.textParentSelector, true);
+function createTextContainer(titleParentSelector, textParentSelector) {
+  const noteList = createNoteList();
+  let userId;
+  let activeTitle = 'welcomeText';
+  function createNoteList() {
+    const welcomeText = createTextArea(textParentSelector, true);
     const value = '\n\n    Hello!\n\n    Please log in!';
     welcomeText.setText(value, '20px');
     welcomeText.setActive(true);
@@ -135,114 +105,77 @@ class TextContainer {
     };
     return [note];
   }
-
-  includes(title) {
-    return this.noteList.some((note) => note.title === title);
+  function includes(title) {
+    return noteList.some((note) => note.title === title);
   }
-
-  getUser() {
-    return this.userId;
+  function getUser() {
+    return userId;
   }
-
-  setUser(userId) {
-    this.userId = userId;
+  function setUser(_userId) {
+    userId = _userId;
   }
-
-  getActiveNote() {
-    const { noteList } = this;
-    const activeNote = noteList.find((note) => note.title === this.activeTitle);
+  function getActiveNote() {
+    const activeNote = noteList.find((note) => note.title === activeTitle);
     if (!activeNote) {
       console.error('Active tab is missing!');
     }
-    return activeNote; // 무조건 Note를 return 해줘야 한다.
+    return activeNote;
   }
-
-  showActiveNote(activeTitle) {
-    this.activeTitle = activeTitle;
-    this.noteList.forEach((note) => {
+  function showActiveNote(_activeTitle) {
+    activeTitle = _activeTitle;
+    noteList.forEach((note) => {
       let _a; let
         _b;
       (_a = note.textTitle) === null || _a === void 0 ? void 0 : _a.setActive(note.title === activeTitle);
       (_b = note.textArea) === null || _b === void 0 ? void 0 : _b.setActive(note.title === activeTitle);
     });
   }
-
-  addNote(titleVal, textVal = '') {
-    const textTitle = new TextTitle(this.titleParentSelector, this);
+  function remove(note) {
+    let _a;
+    const { title } = note;
+    if (title === 'welcomeText') {
+      return;
+    }
+    const idxRemove = noteList.indexOf(note);
+    console.log(`remove title of index: ${idxRemove}`);
+    const numTitles = noteList.length;
+    if (title === activeTitle) {
+      const idxNextActive = (idxRemove === 1 && numTitles > 2) ? idxRemove + 1 : idxRemove - 1;
+      const nextActiveTitle = noteList[idxNextActive].title;
+      console.log('next active title: ', nextActiveTitle);
+      showActiveNote(nextActiveTitle);
+    }
+    (_a = note.textTitle) === null || _a === void 0 ? void 0 : _a.remove();
+    note.textArea.remove();
+    noteList.splice(idxRemove, 1);
+  }
+  function addNote(titleVal, textVal = '') {
+    const textTitle = createTextTitle(titleParentSelector, makeNoteRemovable, showActiveNote);
     textTitle.setTitle(titleVal);
-    const textArea = new TextArea(this.textParentSelector);
+    const textArea = createTextArea(textParentSelector);
     textArea.setText(textVal);
     const note = {
       title: titleVal,
       textTitle,
       textArea,
     };
-    this.noteList.push(note);
-    this.showActiveNote(titleVal);
-    // this.makeNoteRemovable(note);
+    noteList.push(note);
+    showActiveNote(titleVal);
   }
-
-  makeNoteRemovable(title) {
-    return __awaiter(this, void 0, void 0, function* () {
-      if (title === 'welcomeText') { // title = 'welcomeText'일때 textTitle = undefined
-        return;
-      }
-      const foundText = yield fetchGetText(title, this);
-      if (foundText === false) {
-        return;
-      }
-      const foundNote = this.noteList.find((note) => note.title === title);
-      if (foundNote === undefined) {
-        console.error('Note to remove not found!');
-        return;
-      }
-      const { textArea } = foundNote;
-      const text = textArea.getText();
-      const isToBeRemoved = !('text' in foundText) || foundText.text === text || confirm('Are you sure to close the tab without saving?'); // 빈 textarea거나 수정사항이 없을 때 그냥 닫음
-      if (isToBeRemoved) {
-        this.remove(foundNote);
-      }
-    });
-  }
-
-  remove(note) {
-    let _a;
-    const { title } = note;
-    if (title === 'welcomeText') {
-      return;
-    }
-    const { noteList } = this;
-    const idxRemove = noteList.indexOf(note);
-    console.log(`remove title of index: ${idxRemove}`);
-    const numTitles = noteList.length;
-    if (title === this.activeTitle) {
-      const idxNextActive = (idxRemove === 1 && numTitles > 2) ? idxRemove + 1 : idxRemove - 1;
-      const nextActiveTitle = noteList[idxNextActive].title;
-      console.log('next active title: ', nextActiveTitle);
-      this.showActiveNote(nextActiveTitle);
-    }
-    (_a = note.textTitle) === null || _a === void 0 ? void 0 : _a.remove();
-    note.textArea.remove();
-    noteList.splice(idxRemove, 1);
-  }
-
-  setPrevTabs(prevTabs) {
+  function setPrevTabs(prevTabs) {
     console.log('prevTabs: ', prevTabs);
     if (prevTabs.tabs.length > 0) {
-      const { activeTitle, tabs } = prevTabs;
+      const { activeTitle: _activeTitle, tabs } = prevTabs;
       tabs.forEach((titleNtext) => {
         const { title, text } = titleNtext;
         if (title !== 'welcomeText') {
-          this.addNote(title, text);
+          addNote(title, text);
         }
       });
-      this.showActiveNote(activeTitle);
+      showActiveNote(_activeTitle);
     }
   }
-
-  getTabs() {
-    const { userId, activeTitle, noteList } = this;
-    // if user logout successfully, then send the tabs to the api server
+  function getTabs() {
     const texts = {
       userId,
       activeTitle,
@@ -253,15 +186,43 @@ class TextContainer {
     };
     return texts;
   }
+  const textContainer = {
+    includes,
+    getUser,
+    setUser,
+    getActiveNote,
+    showActiveNote,
+    remove,
+    addNote,
+    setPrevTabs,
+    getTabs,
+  };
+  function makeNoteRemovable(title) {
+    return __awaiter(this, void 0, void 0, function* () {
+      if (title === 'welcomeText') { // title = 'welcomeText'일때 textTitle = undefined
+        return;
+      }
+      const foundText = yield fetchGetText(title, textContainer);
+      if (foundText === false) {
+        return;
+      }
+      const foundNote = noteList.find((note) => note.title === title);
+      if (foundNote === undefined) {
+        console.error('Note to remove not found!');
+        return;
+      }
+      const { textArea } = foundNote;
+      const text = textArea.getText();
+      const isToBeRemoved = !('text' in foundText) || foundText.text === text || confirm('Are you sure to close the tab without saving?'); // 빈 textarea거나 수정사항이 없을 때 그냥 닫음
+      if (isToBeRemoved) {
+        remove(foundNote);
+      }
+    });
+  }
+  return textContainer;
 }
-// create text id
 function transformStr(str) {
   return str.replace(/ /g, '-').toLowerCase();
-}
-// login and logout
-function login() {
-  const url = 'https://localhost:3000/login';
-  window.location.href = url;
 }
 function logout(textContainer, pageToGo = 'welcome') {
   return __awaiter(this, void 0, void 0, function* () {
@@ -291,7 +252,6 @@ function logout(textContainer, pageToGo = 'welcome') {
       });
   });
 }
-// fetch function for refreshing the accessToken
 function refreshAccessToken(textContainer) {
   return __awaiter(this, void 0, void 0, function* () {
     const refreshToken = localStorage.getItem('refreshToken');
@@ -324,7 +284,7 @@ function fetchAfterTokenRefreshed(...params) {
   return __awaiter(this, void 0, void 0, function* () {
     let textContainer;
     const rest = params.filter((param) => {
-      if (param instanceof TextContainer) {
+      if (typeof param === 'object' && 'getTabs' in param) {
         textContainer = param;
         return false;
       }
@@ -444,7 +404,6 @@ function fetchDeleteText(title, textContainer) {
     }
   });
 }
-// New Text, Open, Rename, Save, Save As, Delete
 const onclickFuncMap = {
   newText(textContainer) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -489,7 +448,7 @@ const onclickFuncMap = {
   rename(textContainer) {
     return __awaiter(this, void 0, void 0, function* () {
       const activeNote = textContainer.getActiveNote();
-      if (activeNote.title === 'welcomeText') {
+      if (!activeNote || activeNote.title === 'welcomeText') {
         return;
       }
       const { title } = activeNote;
@@ -527,7 +486,7 @@ const onclickFuncMap = {
   save(textContainer) {
     return __awaiter(this, void 0, void 0, function* () {
       const activeNote = textContainer.getActiveNote();
-      if (activeNote.title === 'welcomeText') {
+      if (!activeNote || activeNote.title === 'welcomeText') {
         return;
       }
       const { title, textArea } = activeNote;
@@ -554,7 +513,7 @@ const onclickFuncMap = {
   saveAs(textContainer) {
     return __awaiter(this, void 0, void 0, function* () {
       const activeNote = textContainer.getActiveNote();
-      if (activeNote.title === 'welcomeText') {
+      if (!activeNote || activeNote.title === 'welcomeText') {
         return;
       }
       const newTitle = prompt('Save as:', '');
@@ -577,7 +536,7 @@ const onclickFuncMap = {
   delete(textContainer) {
     return __awaiter(this, void 0, void 0, function* () {
       const activeNote = textContainer.getActiveNote();
-      if (activeNote.title === 'welcomeText') {
+      if (!activeNote || activeNote.title === 'welcomeText') {
         return;
       }
       const { title } = activeNote;
@@ -592,80 +551,77 @@ const onclickFuncMap = {
   },
 };
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-class Notepad {
-  constructor(titleParentSelector, textParentSelector, loginSelector, interactSelector, interactBtnNameList) {
-    this.titleParentSelector = titleParentSelector;
-    this.textParentSelector = textParentSelector;
-    this.loginSelector = loginSelector;
-    this.interactSelector = interactSelector;
-    this.interactBtnNameList = interactBtnNameList;
-    this.textContainer = new TextContainer(this.titleParentSelector, this.textParentSelector);
-    this.loginBtn = this.createLoginBtn();
-    this.interactBtnList = this.createInteractBtnList();
-    this.loadPrevTabs();
-  }
-
-  createLoginBtn() {
-    const loginBtn = createBtn('Login');
-    const parentNode = document.querySelector(this.loginSelector);
-    if (parentNode) {
-      parentNode.appendChild(loginBtn);
+function createNotepad(titleParentSelector, textParentSelector, loginSelector, interactSelector, interactBtnNameList) {
+  return __awaiter(this, void 0, void 0, function* () {
+    const textContainer = createTextContainer(titleParentSelector, textParentSelector);
+    const loginBtn = createLoginBtn();
+    function login() {
+      const url = 'https://localhost:3000/login';
+      window.location.href = url;
     }
-    loginBtn.onclick = () => login();
-    return loginBtn;
-  }
-
-  createInteractBtnList() {
-    const interactBtnList = this.interactBtnNameList.map((btnName) => {
-      const interactBtn = createBtn(btnName);
-      const parentNode = document.querySelector(this.interactSelector);
+    function createLoginBtn() {
+      const btn = createBtn('Login');
+      const parentNode = document.querySelector(loginSelector);
       if (parentNode) {
-        parentNode.appendChild(interactBtn);
+        parentNode.appendChild(btn);
       }
-      let funcName = btnName.replace(' ', ''); // New Text => NewText
-      funcName = funcName[0].toLowerCase() + funcName.slice(1); // NewText => newText
-      const onclickFunc = onclickFuncMap[funcName];
-      interactBtn.onclick = () => onclickFunc(this.textContainer);
-      return interactBtn;
-    });
-    return interactBtnList;
-  }
-
-  loadPrevTabs() {
-    return __awaiter(this, void 0, void 0, function* () {
-      const url = window.location.href;
-      const userId = url.split('/user/')[1];
-      const { loginBtn } = this;
-      if (!userId) { // invalid url
-        console.log('Hello Page!');
-        return;
-      }
-      // login button changes to logout button
-      loginBtn.querySelector('span').innerText = 'Logout';
-      loginBtn.onclick = () => logout(this.textContainer);
-      // 일단 웰컴 페이지의 웰컴 구문을 바꿔준다.
-      this.textContainer.getActiveNote().textArea.setText('\n\n    Welcome!\n\n    Please click \'New Text\' button to start your new text!');
-      this.textContainer.setUser(userId);
-      console.log(`Trying to get the previous tabs ${userId} worked on...`);
-      const url2 = `https://localhost:8000/user/${userId}`;
-      const res = yield fetch(url2, {
-        method: 'GET',
-        credentials: 'include', // for cors, must be set include. unless can't send session values which api server set
+      btn.onclick = () => login();
+      return btn;
+    }
+    function createInteractBtnList() {
+      const btnList = interactBtnNameList.map((btnName) => {
+        const interactBtn = createBtn(btnName);
+        const parentNode = document.querySelector(interactSelector);
+        parentNode === null || parentNode === void 0 ? void 0 : parentNode.appendChild(interactBtn);
+        let funcName = btnName.replace(' ', ''); // New Text => NewText
+        funcName = funcName[0].toLowerCase() + funcName.slice(1); // NewText => newText
+        const onclickFunc = onclickFuncMap[funcName];
+        interactBtn.onclick = () => onclickFunc(textContainer);
+        return interactBtn;
       });
-      if (res.status === 401) { // refresh accessToken if expired
-        const result = yield refreshAccessToken(this.textContainer);
-        if (result) {
-          yield this.loadPrevTabs();
+      return btnList;
+    }
+    function loadPrevTabs() {
+      let _a;
+      return __awaiter(this, void 0, void 0, function* () {
+        const url = window.location.href;
+        const userId = url.split('/user/')[1];
+        if (!userId) { // invalid url
+          console.log('Hello Page!');
+          return;
         }
-        return;
-      }
-      if (!res.ok) {
-        console.error('Error during loading previous tabs');
-        return;
-      }
-      const prevTabs = yield res.json();
-      this.textContainer.setPrevTabs(prevTabs);
-    });
-  }
+        // login button changes to logout button
+        loginBtn.querySelector('span').innerText = 'Logout';
+        loginBtn.onclick = () => logout(textContainer);
+        // 일단 웰컴 페이지의 웰컴 구문을 바꿔준다.
+        (_a = textContainer.getActiveNote()) === null || _a === void 0 ? void 0 : _a.textArea.setText('\n\n    Welcome!\n\n    Please click \'New Text\' button to start your new text!');
+        textContainer.setUser(userId);
+        console.log(`Trying to get the previous tabs ${userId} worked on...`);
+        const url2 = `https://localhost:8000/user/${userId}`;
+        const res = yield fetch(url2, {
+          method: 'GET',
+          credentials: 'include', // for cors, must be set include. unless can't send session values which api server set
+        });
+        if (res.status === 401) { // refresh accessToken if expired
+          const result = yield refreshAccessToken(textContainer);
+          if (result) {
+            yield loadPrevTabs();
+          }
+          return;
+        }
+        if (!res.ok) {
+          console.error('Error during loading previous tabs');
+          return;
+        }
+        const prevTabs = yield res.json();
+        textContainer.setPrevTabs(prevTabs);
+      });
+    }
+    createInteractBtnList();
+    yield loadPrevTabs();
+    // return {
+    //   getTextContainer: () => textContainer,
+    // };
+  });
 }
-export {};
+// export {};

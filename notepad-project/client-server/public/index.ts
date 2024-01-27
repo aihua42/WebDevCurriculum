@@ -8,8 +8,6 @@ type Note = {
   textArea: TextArea;
 };
 
-type NoteList = Note[];
-
 type Tabs = {
   userId: string | undefined;
   activeTitle: string;
@@ -23,161 +21,151 @@ type Text = {
   text: string;
 } | Record<string, never> | false;
 
-type OnclickFuncMap = {
-  [key: string]: (textContainer: TextContainer) => Promise<void>;
+interface Methods {
+  setActive(force: boolean): void;
+  remove(): void;
 }
 
-function createBtn(spanInnerText: string) {
+interface TextTitle extends Methods {
+  getTitle(): string;
+  setTitle(value: string): void;
+}
+
+interface TextArea extends Methods {
+  getText(): string;
+  setText(value: string, fontSize?: string): void;
+}
+
+type TextContainer = {
+  includes(title: string): boolean;
+  getUser(): undefined | string;
+  setUser(user: string): void;
+  getActiveNote(): undefined | Note;
+  showActiveNote(title: string): void;
+  remove(note: Note): void;
+  addNote(titleVal: string, textVal: string): void;
+  setPrevTabs(prevTabs: Tabs): void;
+  getTabs(): Tabs;
+};
+
+// type Notepad = {
+//   getTextContainer(): TextContainer;
+// };
+
+type OnclickFuncMap = {
+  [key: string]: (textContainer: TextContainer) => Promise<void>;
+};
+
+function createBtn(spanInnerText: string): HTMLButtonElement {
   const span: HTMLSpanElement = document.createElement('span');
   span.innerText = spanInnerText;
 
-  const button: HTMLButtonElement = document.createElement('button');
+  const button = document.createElement('button');
   button.appendChild(span);
   button.type = 'button';
 
   return button;
 }
 
-class TextTitle {
-  private parentSelector: string;
+function createTextTitle(parentSelector: string, makeNoteRemovable: (title: string) => void, showActiveNote: (title: string) => void): TextTitle {
+  const ele = createTitleInputContainer();
 
-  private textContainer: TextContainer;
-
-  private ele: HTMLDivElement;
-
-  constructor(parentSelector: string, textContainer: TextContainer) {
-    this.parentSelector = parentSelector;
-    this.textContainer = textContainer;
-    this.ele = this.createTitleInputContainer();
-  }
-
-  private createTitleInputContainer() {
+  function createTitleInputContainer(): HTMLDivElement {
     const inputEle: HTMLInputElement = document.createElement('input');
     inputEle.type = 'button';
     inputEle.readOnly = true;
 
     const btnEle = createBtn('x');
-    btnEle.onclick = async (event) => {
+    btnEle.onclick = (event) => {
       event.stopPropagation();
-      await this.textContainer.makeNoteRemovable(this.getTitle());
+      makeNoteRemovable(getTitle());
     };
 
     const divEle: HTMLDivElement = document.createElement('div');
     divEle.append(inputEle, btnEle);
 
     divEle.onclick = () => {
-      this.textContainer.showActiveNote(this.getTitle());
+      showActiveNote(getTitle());
     };
 
-    const parentNode = document.querySelector(this.parentSelector);
-    if (parentNode) {
-      parentNode.appendChild(divEle);
-    }
+    const parentNode = document.querySelector(parentSelector);
+    parentNode?.appendChild(divEle);
 
     return divEle;
   }
 
-  getTitle(): string {
-    const inputEle = this.ele.querySelector('input');
-    return inputEle ? inputEle.value : '';
+  function getTitle(): string {
+    const inputEle = ele.querySelector('input') as HTMLInputElement;
+    return inputEle.value;
   }
 
-  setTitle(value: string) {
-    const inputEle = this.ele.querySelector('input');
-    if (inputEle) {
-      inputEle.value = value;
-    }
+  function setTitle(value: string) {
+    const inputEle = ele.querySelector('input') as HTMLInputElement;
+    inputEle.value = value;
   }
 
-  setActive(force: boolean) {
-    this.ele.classList.toggle('active', force);
+  function setActive(force: boolean) {
+    ele.classList.toggle('active', force);
   }
 
-  remove() {
-    /*
-    const xBtn = this.ele.querySelector('button');
-    if (!xBtn) {
-      return;
-    }
-
-    xBtn.onclick = (event) => {
-      event.stopPropagation();
-      this.ele.remove();
-    };
-    */
-    this.ele.remove();
+  function remove() {
+    ele.remove();
   }
+
+  return {
+    getTitle,
+    setTitle,
+    setActive,
+    remove,
+  };
 }
 
-class TextArea {
-  private parentSelector: string;
+function createTextArea(parentSelector: string, readOnly = false): TextArea {
+  const ele = createTextAreaEle();
 
-  private readOnly: boolean;
-
-  private ele: HTMLTextAreaElement;
-
-  constructor(parentSelector: string, readOnly = false) {
-    this.parentSelector = parentSelector;
-    this.readOnly = readOnly;
-    this.ele = this.createTextAreaEle();
-  }
-
-  private createTextAreaEle() {
+  function createTextAreaEle(): HTMLTextAreaElement {
     const textareaEle: HTMLTextAreaElement = document.createElement('textarea');
-    textareaEle.readOnly = this.readOnly;
-    textareaEle.placeholder = this.readOnly ? '' : 'Start your text here';
+    textareaEle.readOnly = readOnly;
+    textareaEle.placeholder = readOnly ? '' : 'Start your text here';
 
-    const parentNode = document.querySelector(this.parentSelector);
-    if (parentNode) {
-      parentNode.appendChild(textareaEle);
-    }
+    const parentNode = document.querySelector(parentSelector);
+    parentNode?.appendChild(textareaEle);
 
     return textareaEle;
   }
 
-  getText(): string {
-    return this.ele.value;
+  function getText(): string {
+    return ele.value;
   }
 
-  setText(value: string, fontSize = '') {
-    this.ele.value = value;
-
-    if (fontSize) {
-      this.ele.style.fontSize = fontSize;
-    }
+  function setText(value: string, fontSize = '') {
+    ele.value = value;
+    fontSize && (ele.style.fontSize = fontSize);
   }
 
-  setActive(force: boolean) {
-    this.ele.classList.toggle('active', force);
+  function setActive(force: boolean) {
+    ele.classList.toggle('active', force);
   }
 
-  remove() {
-    this.ele.remove();
+  function remove() {
+    ele.remove();
   }
+
+  return {
+    getText,
+    setText,
+    setActive,
+    remove,
+  };
 }
 
-class TextContainer {
-  private titleParentSelector: string;
+function createTextContainer(titleParentSelector: string, textParentSelector: string): TextContainer {
+  const noteList = createNoteList();
+  let userId: undefined | string;
+  let activeTitle: string = 'welcomeText';
 
-  private textParentSelector: string;
-
-  private noteList: NoteList;
-
-  private activeTitle: string;
-
-  private userId: string | undefined;
-
-  constructor(titleParentSelector: string, textParentSelector: string) {
-    this.titleParentSelector = titleParentSelector;
-    this.textParentSelector = textParentSelector;
-
-    this.noteList = this.createNoteList();
-    this.activeTitle = 'welcomeText';
-    this.userId = undefined;
-  }
-
-  private createNoteList(): NoteList {
-    const welcomeText = new TextArea(this.textParentSelector, true);
+  function createNoteList(): Note[] {
+    const welcomeText = createTextArea(textParentSelector, true);
     const value = '\n\n    Hello!\n\n    Please log in!';
     welcomeText.setText(value, '20px');
     welcomeText.setActive(true);
@@ -191,96 +179,52 @@ class TextContainer {
     return [note];
   }
 
-  includes(title: string): boolean {
-    return this.noteList.some((note) => note.title === title);
+  function includes(title: string): boolean {
+    return noteList.some((note) => note.title === title);
   }
 
-  getUser(): undefined | string {
-    return this.userId;
+  function getUser(): undefined | string {
+    return userId;
   }
 
-  setUser(userId: string) {
-    this.userId = userId;
+  function setUser(_userId: string): void {
+    userId = _userId;
   }
 
-  getActiveNote(): Note {
-    const { noteList } = this;
-    const activeNote = noteList.find((note) => note.title === this.activeTitle);
+  function getActiveNote(): undefined | Note {
+    const activeNote = noteList.find((note) => note.title === activeTitle);
     if (!activeNote) {
       console.error('Active tab is missing!');
     }
 
-    return activeNote as Note; // 무조건 Note를 return 해줘야 한다.
+    return activeNote;
   }
 
-  showActiveNote(activeTitle: string) {
-    this.activeTitle = activeTitle;
+  function showActiveNote(_activeTitle: string) {
+    activeTitle = _activeTitle;
 
-    this.noteList.forEach((note) => {
+    noteList.forEach((note) => {
       note.textTitle?.setActive(note.title === activeTitle);
       note.textArea?.setActive(note.title === activeTitle);
     });
   }
 
-  addNote(titleVal: string, textVal = '') {
-    const textTitle = new TextTitle(this.titleParentSelector, this);
-    textTitle.setTitle(titleVal);
-
-    const textArea = new TextArea(this.textParentSelector);
-    textArea.setText(textVal);
-
-    const note: Note = {
-      title: titleVal,
-      textTitle,
-      textArea,
-    };
-    this.noteList.push(note);
-    this.showActiveNote(titleVal);
-    // this.makeNoteRemovable(note);
-  }
-
-  async makeNoteRemovable(title: string) {
-    if (title === 'welcomeText') { // title = 'welcomeText'일때 textTitle = undefined
-      return;
-    }
-
-    const foundText = await fetchGetText(title, this);
-    if (foundText === false) {
-      return;
-    }
-
-    const foundNote = this.noteList.find((note) => note.title === title);
-    if (foundNote === undefined) {
-      console.error('Note to remove not found!');
-      return;
-    }
-
-    const { textArea } = foundNote;
-    const text = textArea.getText();
-    const isToBeRemoved = !('text' in foundText) || foundText.text === text || confirm('Are you sure to close the tab without saving?'); // 빈 textarea거나 수정사항이 없을 때 그냥 닫음
-
-    if (isToBeRemoved) {
-      this.remove(foundNote);
-    }
-  }
-
-  remove(note: Note) {
+  function remove(note: Note) {
     const { title } = note;
     if (title === 'welcomeText') {
       return;
     }
 
-    const { noteList } = this;
     const idxRemove = noteList.indexOf(note);
     console.log(`remove title of index: ${idxRemove}`);
 
     const numTitles = noteList.length;
-    if (title === this.activeTitle) {
+    if (title === activeTitle) {
       const idxNextActive = (idxRemove === 1 && numTitles > 2) ? idxRemove + 1 : idxRemove - 1;
       const nextActiveTitle = noteList[idxNextActive].title;
       console.log('next active title: ', nextActiveTitle);
 
-      this.showActiveNote(nextActiveTitle);
+      showActiveNote(nextActiveTitle);
     }
 
     note.textTitle?.remove();
@@ -288,29 +232,43 @@ class TextContainer {
     noteList.splice(idxRemove, 1);
   }
 
-  setPrevTabs(prevTabs: Tabs) {
+  function addNote(titleVal: string, textVal = '') {
+    const textTitle = createTextTitle(titleParentSelector, makeNoteRemovable, showActiveNote);
+    textTitle.setTitle(titleVal);
+
+    const textArea = createTextArea(textParentSelector);
+    textArea.setText(textVal);
+
+    const note: Note = {
+      title: titleVal,
+      textTitle,
+      textArea,
+    };
+
+    noteList.push(note);
+    showActiveNote(titleVal);
+  }
+
+  function setPrevTabs(prevTabs: Tabs) {
     console.log('prevTabs: ', prevTabs);
 
     if (prevTabs.tabs.length > 0) {
-      const { activeTitle, tabs } = prevTabs;
+      const { activeTitle: _activeTitle, tabs } = prevTabs;
 
       tabs.forEach((titleNtext) => {
         const { title, text } = titleNtext;
 
         if (title !== 'welcomeText') {
-          this.addNote(title, text);
+          addNote(title, text);
         }
       });
 
-      this.showActiveNote(activeTitle);
+      showActiveNote(_activeTitle);
     }
   }
 
-  getTabs() {
-    const { userId, activeTitle, noteList } = this;
-
-    // if user logout successfully, then send the tabs to the api server
-    const texts: Tabs = {
+  function getTabs(): Tabs {
+    const texts = {
       userId,
       activeTitle,
       tabs: noteList.map((note) => ({
@@ -321,17 +279,49 @@ class TextContainer {
 
     return texts;
   }
+
+  const textContainer: TextContainer = {
+    includes,
+    getUser,
+    setUser,
+    getActiveNote,
+    showActiveNote,
+    remove,
+    addNote,
+    setPrevTabs,
+    getTabs,
+  };
+
+  async function makeNoteRemovable(title: string) {
+    if (title === 'welcomeText') { // title = 'welcomeText'일때 textTitle = undefined
+      return;
+    }
+
+    const foundText = await fetchGetText(title, textContainer);
+    if (foundText === false) {
+      return;
+    }
+
+    const foundNote = noteList.find((note) => note.title === title);
+    if (foundNote === undefined) {
+      console.error('Note to remove not found!');
+      return;
+    }
+
+    const { textArea } = foundNote;
+    const text = textArea.getText();
+    const isToBeRemoved = !('text' in foundText) || foundText.text === text || confirm('Are you sure to close the tab without saving?'); // 빈 textarea거나 수정사항이 없을 때 그냥 닫음
+
+    if (isToBeRemoved) {
+      remove(foundNote);
+    }
+  }
+
+  return textContainer;
 }
 
-// create text id
-function transformStr(str: string) {
+function transformStr(str: string): string {
   return str.replace(/ /g, '-').toLowerCase();
-}
-
-// login and logout
-function login() {
-  const url = 'https://localhost:3000/login';
-  window.location.href = url;
 }
 
 async function logout(textContainer: TextContainer, pageToGo = 'welcome') {
@@ -365,8 +355,7 @@ async function logout(textContainer: TextContainer, pageToGo = 'welcome') {
     });
 }
 
-// fetch function for refreshing the accessToken
-async function refreshAccessToken(textContainer: TextContainer) {
+async function refreshAccessToken(textContainer: TextContainer): Promise<boolean> {
   const refreshToken = localStorage.getItem('refreshToken');
   if (!refreshToken) {
     return false;
@@ -400,8 +389,8 @@ async function fetchAfterTokenRefreshed(...params: [string, object, TextContaine
   let textContainer: TextContainer | undefined;
 
   const rest = params.filter((param) => {
-    if (param instanceof TextContainer) {
-      textContainer = param;
+    if (typeof param === 'object' && 'getTabs' in param) {
+      textContainer = param as TextContainer;
       return false;
     }
 
@@ -427,7 +416,7 @@ async function fetchAfterTokenRefreshed(...params: [string, object, TextContaine
 }
 
 // fetch functions for 'New Text', 'Open', 'Rename', 'Save', 'Save As', 'Delete' buttons
-async function fetchGetText(title: string, textContainer: TextContainer) {
+async function fetchGetText(title: string, textContainer: TextContainer): Promise<Text> {
   const userId = textContainer.getUser();
   const textId = transformStr(title);
   const url = `https://localhost:8000/user/${userId}/${textId}`;
@@ -454,7 +443,7 @@ async function fetchGetText(title: string, textContainer: TextContainer) {
   return text;
 }
 
-async function fetchPostText(title: string, text: string, textContainer: TextContainer) {
+async function fetchPostText(title: string, text: string, textContainer: TextContainer): Promise<void> {
   const userId = textContainer.getUser();
   const url = `https://localhost:8000/user/${userId}`;
   const textId = transformStr(title);
@@ -477,7 +466,7 @@ async function fetchPostText(title: string, text: string, textContainer: TextCon
     });
 }
 
-async function fetchPatchText(textId: string, key: string, preNnewVals: string[], textContainer: TextContainer) {
+async function fetchPatchText(textId: string, key: string, preNnewVals: string[], textContainer: TextContainer): Promise<boolean> {
   const userId = textContainer.getUser();
   const url = `https://localhost:8000/user/${userId}/${key}`;
 
@@ -516,7 +505,7 @@ async function fetchPatchText(textId: string, key: string, preNnewVals: string[]
   }
 }
 
-async function fetchDeleteText(title: string, textContainer: TextContainer) {
+async function fetchDeleteText(title: string, textContainer: TextContainer): Promise<boolean> {
   const userId = textContainer.getUser();
   const textId = transformStr(title);
   const url = `https://localhost:8000/user/${userId}/${textId}`;
@@ -534,9 +523,8 @@ async function fetchDeleteText(title: string, textContainer: TextContainer) {
   }
 }
 
-// New Text, Open, Rename, Save, Save As, Delete
 const onclickFuncMap: OnclickFuncMap = {
-  async newText(textContainer: TextContainer) {
+  async newText(textContainer: TextContainer): Promise<void> {
     const title = prompt('Input the title:', '');
     if (title === null || title === '') {
       return;
@@ -557,7 +545,7 @@ const onclickFuncMap: OnclickFuncMap = {
     textContainer.addNote(title, '');
   },
 
-  async open(textContainer: TextContainer) {
+  async open(textContainer: TextContainer): Promise<void> {
     const title = prompt('Input title of the text to open:', '');
     if (title === null || title === '') {
       return;
@@ -582,9 +570,9 @@ const onclickFuncMap: OnclickFuncMap = {
     }
   },
 
-  async rename(textContainer: TextContainer) {
+  async rename(textContainer: TextContainer): Promise<void> {
     const activeNote = textContainer.getActiveNote();
-    if (activeNote.title === 'welcomeText') {
+    if (!activeNote || activeNote.title === 'welcomeText') {
       return;
     }
 
@@ -628,9 +616,9 @@ const onclickFuncMap: OnclickFuncMap = {
     textTitle.setTitle(newTitle);
   },
 
-  async save(textContainer: TextContainer) {
+  async save(textContainer: TextContainer): Promise<void> {
     const activeNote = textContainer.getActiveNote();
-    if (activeNote.title === 'welcomeText') {
+    if (!activeNote || activeNote.title === 'welcomeText') {
       return;
     }
 
@@ -660,9 +648,9 @@ const onclickFuncMap: OnclickFuncMap = {
     }
   },
 
-  async saveAs(textContainer: TextContainer) {
+  async saveAs(textContainer: TextContainer): Promise<void> {
     const activeNote = textContainer.getActiveNote();
-    if (activeNote.title === 'welcomeText') {
+    if (!activeNote || activeNote.title === 'welcomeText') {
       return;
     }
 
@@ -687,9 +675,9 @@ const onclickFuncMap: OnclickFuncMap = {
     fetchPostText(newTitle, text, textContainer);
   },
 
-  async delete(textContainer: TextContainer) {
+  async delete(textContainer: TextContainer): Promise<void> {
     const activeNote = textContainer.getActiveNote();
-    if (activeNote.title === 'welcomeText') {
+    if (!activeNote || activeNote.title === 'welcomeText') {
       return;
     }
 
@@ -706,73 +694,48 @@ const onclickFuncMap: OnclickFuncMap = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-class Notepad {
-  private titleParentSelector: string;
+async function createNotepad(titleParentSelector: string, textParentSelector: string, loginSelector: string, interactSelector: string, interactBtnNameList: string[]): Promise<void> {
+  const textContainer = createTextContainer(titleParentSelector, textParentSelector);
+  const loginBtn = createLoginBtn();
 
-  private textParentSelector: string;
-
-  private loginSelector: string;
-
-  private interactSelector: string;
-
-  private interactBtnNameList: string[];
-
-  private textContainer: TextContainer;
-
-  private loginBtn: HTMLButtonElement;
-
-  private interactBtnList: HTMLButtonElement[];
-
-  constructor(titleParentSelector: string, textParentSelector: string, loginSelector: string, interactSelector: string, interactBtnNameList: string[]) {
-    this.titleParentSelector = titleParentSelector;
-    this.textParentSelector = textParentSelector;
-    this.loginSelector = loginSelector;
-    this.interactSelector = interactSelector;
-    this.interactBtnNameList = interactBtnNameList;
-
-    this.textContainer = new TextContainer(this.titleParentSelector, this.textParentSelector);
-    this.loginBtn = this.createLoginBtn();
-    this.interactBtnList = this.createInteractBtnList();
-
-    this.loadPrevTabs();
+  function login() {
+    const url = 'https://localhost:3000/login';
+    window.location.href = url;
   }
 
-  private createLoginBtn() {
-    const loginBtn = createBtn('Login');
+  function createLoginBtn(): HTMLButtonElement {
+    const btn = createBtn('Login');
 
-    const parentNode = document.querySelector(this.loginSelector);
+    const parentNode = document.querySelector(loginSelector);
     if (parentNode) {
-      parentNode.appendChild(loginBtn);
+      parentNode.appendChild(btn);
     }
 
-    loginBtn.onclick = () => login();
-    return loginBtn;
+    btn.onclick = () => login();
+    return btn;
   }
 
-  private createInteractBtnList() {
-    const interactBtnList = this.interactBtnNameList.map((btnName) => {
+  function createInteractBtnList(): HTMLButtonElement[] {
+    const btnList = interactBtnNameList.map((btnName) => {
       const interactBtn = createBtn(btnName);
-      const parentNode = document.querySelector(this.interactSelector);
-      if (parentNode) {
-        parentNode.appendChild(interactBtn);
-      }
+      const parentNode = document.querySelector(interactSelector);
+      parentNode?.appendChild(interactBtn);
 
       let funcName = btnName.replace(' ', ''); // New Text => NewText
       funcName = funcName[0].toLowerCase() + funcName.slice(1); // NewText => newText
 
       const onclickFunc = onclickFuncMap[funcName];
-      interactBtn.onclick = () => onclickFunc(this.textContainer);
+      interactBtn.onclick = () => onclickFunc(textContainer);
 
       return interactBtn;
     });
 
-    return interactBtnList;
+    return btnList;
   }
 
-  private async loadPrevTabs() { // page reload 할때마다 실행된다.
+  async function loadPrevTabs() {
     const url = window.location.href;
     const userId = url.split('/user/')[1];
-    const { loginBtn } = this;
 
     if (!userId) { // invalid url
       console.log('Hello Page!');
@@ -781,11 +744,11 @@ class Notepad {
 
     // login button changes to logout button
     (loginBtn.querySelector('span') as HTMLSpanElement).innerText = 'Logout';
-    loginBtn.onclick = () => logout(this.textContainer);
+    loginBtn.onclick = () => logout(textContainer);
 
     // 일단 웰컴 페이지의 웰컴 구문을 바꿔준다.
-    this.textContainer.getActiveNote().textArea.setText('\n\n    Welcome!\n\n    Please click \'New Text\' button to start your new text!');
-    this.textContainer.setUser(userId);
+    textContainer.getActiveNote()?.textArea.setText('\n\n    Welcome!\n\n    Please click \'New Text\' button to start your new text!');
+    textContainer.setUser(userId);
     console.log(`Trying to get the previous tabs ${userId} worked on...`);
 
     const url2 = `https://localhost:8000/user/${userId}`;
@@ -795,9 +758,9 @@ class Notepad {
     });
 
     if (res.status === 401) { // refresh accessToken if expired
-      const result = await refreshAccessToken(this.textContainer);
+      const result = await refreshAccessToken(textContainer);
       if (result) {
-        await this.loadPrevTabs();
+        await loadPrevTabs();
       }
       return;
     }
@@ -808,6 +771,13 @@ class Notepad {
     }
 
     const prevTabs = await res.json();
-    this.textContainer.setPrevTabs(prevTabs);
+    textContainer.setPrevTabs(prevTabs);
   }
+
+  createInteractBtnList();
+  await loadPrevTabs();
+
+  // return {
+  //   getTextContainer: () => textContainer,
+  // };
 }

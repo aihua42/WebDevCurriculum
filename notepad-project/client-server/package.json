@@ -10,13 +10,9 @@
 
     "build": "tsc -p tsconfig.json && eslint --no-cache '**/*.js' --fix",
 
-    "lint-client": "eslint --no-cache client.ts",
-    "lint-contr": "eslint --no-cache controllers/**/*.ts",
-    "lint-public": "eslint --no-cache public/**/*.ts",
-    
-    "fix-client": "eslint client.ts --fix",
-    "fix-contr": "eslint controllers/**/*.ts --fix",
-    "fix-public": "eslint public/**/*.ts --fix"
+    "lint-client": "eslint --no-cache client.ts --fix",
+    "lint-contr": "eslint --no-cache controllers/**/*.ts --fix",
+    "lint-public": "eslint --no-cache public/**/*.ts --fix"
   },
   "author": "AihuaJin",
   "license": "ISC",
