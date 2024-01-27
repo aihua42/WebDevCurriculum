@@ -7,14 +7,14 @@ import dotenv from "dotenv";
 
 import corsMiddleware from "./middlewares/cors.mjs";
 import sessMiddleware from "./middlewares/session.mjs";
-import validateSess from "./middlewares/validateSess.mjs";
+// import validateSess from "./middlewares/validateSess.mjs";
 import validateJWT from "./middlewares/validateJWT.mjs";
 
 import router from "./routes/user.mjs";
 
 import signup from "./controllers/signup.mjs";
-import loginSess from "./controllers/loginSess.mjs";
-import logoutSess from "./controllers/logoutSess.mjs";
+// import loginSess from "./controllers/loginSess.mjs";
+// import logoutSess from "./controllers/logoutSess.mjs";
 import loginJWT from "./controllers/loginJWT.mjs";
 import logoutJWT from "./controllers/logoutJWT.mjs";
 import refreshAccessToken from "./controllers/refreshAccessToken.mjs";

@@ -1,11 +1,33 @@
 {
   "name": "api-server",
   "version": "1.0.0",
-  "description": "api server of nodepad project",
+  "description": "api server of notepad project",
   "main": "api.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "api": "nodemon api.mjs"
+    "start": "nodemon api.mjs",
+
+    "build-api": "babel api.mts --out-dir dist --extensions \".ts,.mts\"",
+    "build-helpers": "babel helpers-ts --out-dir helpers --extensions \".ts,.mts\"",
+    "build-models": "babel models-ts --out-dir models --extensions \".ts,.mts\"",
+    "build-mid": "babel middlewares-ts --out-dir middlewares --extensions \".ts,.mts\"",
+    "build-contr": "babel controllers-ts --out-dir controllers --extensions \".ts,.mts\"",
+    "build-routes": "babel routes-ts --out-dir routes --extensions \".ts,.mts\"",
+
+    "lint-api-ts": "eslint --no-cache api.mts --fix",
+    "lint-types-ts": "eslint --no-cache types.ts --fix",
+    "lint-helpers-ts": "eslint --no-cache helpers-ts/**/*.mts --fix",
+    "lint-models-ts": "eslint --no-cache models-ts/**/*.ts --fix",
+    "lint-mid-ts": "eslint --no-cache middlewares-ts/**/*.mts --fix",
+    "lint-contr-ts": "eslint --no-cache controllers-ts/**/*.mts --fix",
+    "lint-routes-ts": "eslint --no-cache routes-ts/**/*.mts --fix",
+
+    "lint-api": "eslint --no-cache api.mjs --fix",
+    "lint-helpers": "eslint --no-cache helpers/**/*.mjs --fix",
+    "lint-models": "eslint --no-cache models/**/*.mjs --fix",
+    "lint-mid": "eslint --no-cache middlewares/**/*.mjs --fix",
+    "lint-contr": "eslint --no-cache controllers/**/*.mjs --fix",
+    "lint-routes": "eslint --no-cache routes/**/*.mjs --fix"
   },
   "author": "AihuaJin",
   "license": "ISC",
@@ -13,6 +35,7 @@
     "bcrypt": "^5.1.1",
     "connect-session-sequelize": "^7.1.7",
     "cookie-parser": "^1.4.6",
+    "core-js": "^3.35.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
@@ -24,6 +47,29 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2"
+    "@babel/cli": "^7.23.4",
+    "@babel/core": "^7.23.7",
+    "@babel/plugin-transform-runtime": "^7.23.7",
+    "@babel/preset-env": "^7.23.8",
+    "@babel/preset-flow": "^7.23.3",
+    "@babel/preset-typescript": "^7.23.3",
+    "@babel/runtime": "^7.23.8",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/express-session": "^1.17.10",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.11.6",
+    "@types/sequelize": "^4.28.20",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "babel-plugin-module-extension": "^0.1.3",
+    "eslint": "^8.56.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "^2.29.1",
+    "standard": "^17.1.0"
   }
 }

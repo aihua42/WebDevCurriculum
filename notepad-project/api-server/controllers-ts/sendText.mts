@@ -1,7 +1,7 @@
-import * as db from '../models/index.js'
+import * as db from '../models-ts/index.ts'
 import { type Request, type Response } from 'express'
 import { type DB } from '../types'
-import errorHandler from '../helpers/errorHandler.js'
+import errorHandler from '../helpers-ts/errorHandler.mts'
 
 const { Text } = db as DB
 

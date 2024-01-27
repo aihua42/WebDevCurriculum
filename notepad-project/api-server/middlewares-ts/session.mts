@@ -2,8 +2,8 @@ import session, { type CookieOptions } from 'express-session'
 import { v4 as uuidv4 } from 'uuid'
 import SequelizeStore from 'connect-session-sequelize'
 import dotenv from 'dotenv'
-import * as db from '../models/index.js'
-import cookieOptions from '../helpers/cookieOptions.js'
+import * as db from '../models-ts/index.ts'
+import cookieOptions from '../helpers-ts/cookieOptions.mts'
 
 import { type DB } from '../types'
 

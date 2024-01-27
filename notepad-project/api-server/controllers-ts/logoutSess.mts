@@ -1,9 +1,9 @@
 import { type Request, type Response } from 'express'
-import * as db from '../models/index.js'
+import * as db from '../models-ts/index.ts'
 import { type DB, type Tabs, type TabRecord } from '../types'
 
-import errorHandler from '../helpers/errorHandler.js'
-import createRecordList from '../helpers/createRecordList.js'
+import errorHandler from '../helpers-ts/errorHandler.mts'
+import createRecordList from '../helpers-ts/createRecordList.mts'
 
 const { Tab } = db as DB
 

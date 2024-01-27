@@ -1,10 +1,10 @@
 import express from 'express'
 
-import sendText from '../controllers/sendText.js'
-import addText from '../controllers/addText.js'
-import updateText from '../controllers/updateText.js'
-import deleteText from '../controllers/deleteText.js'
-import sendTabs from '../controllers/sendTabs.js'
+import sendText from '../controllers-ts/sendText.mts'
+import addText from '../controllers-ts/addText.mts'
+import updateText from '../controllers-ts/updateText.mts'
+import deleteText from '../controllers-ts/deleteText.mts'
+import sendTabs from '../controllers-ts/sendTabs.mts'
 
 const router = express.Router()
 

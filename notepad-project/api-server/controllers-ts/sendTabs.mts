@@ -1,15 +1,15 @@
-import errorHandler from '../helpers/errorHandler.js'
+import errorHandler from '../helpers-ts/errorHandler.mts'
 
 import { type Request, type Response } from 'express'
-import { type DB } from '../types'
-import * as db from '../models/index.js'
+import { type DB, type TabRecord } from '../types'
+import * as db from '../models-ts/index.ts'
 
 const { Tab } = db as DB
 
 const sendTabs = async (req: Request, res: Response): Promise<void> => {
   const userId = req.params.userId
 
-  let tabRecordList = []
+  let tabRecordList: TabRecord[] = []
   try {
     tabRecordList = await Tab!.findAll({ where: { userId } })
   } catch (err) {
@@ -22,7 +22,7 @@ const sendTabs = async (req: Request, res: Response): Promise<void> => {
     return
   }
 
-  let activeTitle
+  let activeTitle: undefined | string
   const textList = tabRecordList.map((record) => {
     if (record.active) {
       activeTitle = record.title

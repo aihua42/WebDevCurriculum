@@ -1,4 +1,4 @@
-import errorHandler from '../helpers/errorHandler.js'
+import errorHandler from '../helpers-ts/errorHandler.mts'
 import { type Request, type Response, type NextFunction } from 'express'
 import type session from 'express-session'
 import { type UserAttributes } from '../types'

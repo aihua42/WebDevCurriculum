@@ -1,7 +1,7 @@
-import errorHandler from '../helpers/errorHandler.js'
-import hashPW from '../helpers/hashPW.js'
+import errorHandler from '../helpers-ts/errorHandler.mts'
+import hashPW from '../helpers-ts/hashPW.mts'
 
-import * as db from '../models/index.js'
+import * as db from '../models-ts/index.ts'
 import { type Request, type Response } from 'express'
 import { type DB } from '../types'
 

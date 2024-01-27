@@ -1,4 +1,4 @@
-import isInTextList from "../helpers/isInTextDB.mjs";
+import isInTextList from "../helpers/isInTextList.mjs";
 import errorHandler from "../helpers/errorHandler.mjs";
 
 import db from "../models/index.js";

@@ -7,11 +7,11 @@ import {
   type UserAttributes
 } from '../types'
 
-import createToken from '../helpers/createToken.js'
-import cookieOptions from '../helpers/cookieOptions.js'
-import errorHandler from '../helpers/errorHandler.js'
+import createToken from '../helpers-ts/createToken.mts'
+import cookieOptions from '../helpers-ts/cookieOptions.mts'
+import errorHandler from '../helpers-ts/errorHandler.mts'
 
-import * as db from '../models/index.js'
+import * as db from '../models-ts/index.ts'
 const { Token } = db as DB
 
 dotenv.config()

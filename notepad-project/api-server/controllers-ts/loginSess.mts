@@ -1,9 +1,9 @@
 import { type Request, type Response } from 'express'
 import type session from 'express-session'
-import * as db from '../models/index.js'
+import * as db from '../models-ts/index.ts'
 
-import errorHandler from '../helpers/errorHandler.js'
-import comparePW from '../helpers/comparePW.js'
+import errorHandler from '../helpers-ts/errorHandler.mts'
+import comparePW from '../helpers-ts/comparePW.mts'
 
 import { type DB, type UserAttributes } from '../types'
 

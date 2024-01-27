@@ -14,22 +14,22 @@ const loginJWT = async (req, res) => {
   try {
     userData = await db.User.findOne({ where: { userId } });
     if (userData === null) {  
-      errorHandler(204, `${userId} not found, from "loginSess" controller`, null, res);
+      errorHandler(204, `${userId} not found, from "loginJWT" controller`, null, res);
       return;
     }
   } catch (err) {
-    errorHandler(500, 'Error during loading User data in "loginSess" controller', err, res);
+    errorHandler(500, 'Error during loading User data in "loginJWT" controller', err, res);
     return;
   }
 
   try {
     const checkPW = comparePW(pw, userData.pw);
     if (!checkPW) {
-      errorHandler(209, 'Passwords do not match, from "loginSess" controller', null, res);
+      errorHandler(209, 'Passwords do not match, from "loginJWT" controller', null, res);
       return;
     }
   } catch (err) {
-    errorHandler(500, 'Error when compare the passwords, from "loginSess" controller', err, res);
+    errorHandler(500, 'Error when compare the passwords, from "loginJWT" controller', err, res);
     return;
   }
 

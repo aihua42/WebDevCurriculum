@@ -1,17 +1,17 @@
 import { type Request, type Response } from 'express'
 
-import isInTextList from '../helpers/isInTextDB.js'
-import errorHandler from '../helpers/errorHandler.js'
+import isInTextList from "../helpers-ts/isInTextList.mts";
+import errorHandler from "../helpers-ts/errorHandler.mts";
 
-import * as db from '../models/index.js'
-import { type DB } from '../types'
+import * as db from "../models-ts/index.ts";
+import { type DB, type TextRecord } from "../types";
 
 const { Text } = db as DB
 
 const addText = async (req: Request, res: Response): Promise<void> => {
   const userId = req.params.userId
 
-  let textList = []
+  let textList: TextRecord[] = [];
   try {
     textList = await Text!.findAll({ where: { userId } })
   } catch (err: unknown) {

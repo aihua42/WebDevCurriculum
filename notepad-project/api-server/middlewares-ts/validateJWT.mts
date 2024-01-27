@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import { type Request, type Response, type NextFunction } from 'express'
 
-import errorHandler from '../helpers/errorHandler.js'
+import errorHandler from '../helpers-ts/errorHandler.mts'
 
 dotenv.config()
 

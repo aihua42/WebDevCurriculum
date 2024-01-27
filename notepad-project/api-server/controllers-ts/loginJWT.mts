@@ -1,11 +1,11 @@
 import { type Request, type Response } from 'express'
 
-import errorHandler from '../helpers/errorHandler.js'
-import createToken from '../helpers/createToken.js'
-import comparePW from '../helpers/comparePW.js'
-import cookieOptions from '../helpers/cookieOptions.js'
+import errorHandler from '../helpers-ts/errorHandler.mts'
+import createToken from '../helpers-ts/createToken.mts'
+import comparePW from '../helpers-ts/comparePW.mts'
+import cookieOptions from '../helpers-ts/cookieOptions.mts'
 
-import * as db from '../models/index.js'
+import * as db from '../models-ts/index.ts'
 import { type DB, type UserAttributes } from '../types'
 
 const { User, Token } = db as DB
