@@ -21,7 +21,7 @@ type Text = {
   textId: string;
   title: string;
   text: string;
-} | Record<string, never> | false;
+} | Record<string, never> | null;
 
 type OnclickFuncMap = {
   [key: string]: (textContainer: TextContainer) => Promise<void>;
@@ -70,9 +70,7 @@ class TextTitle {
     };
 
     const parentNode = document.querySelector(this.parentSelector);
-    if (parentNode) {
-      parentNode.appendChild(divEle);
-    }
+    parentNode?.appendChild(divEle);
 
     return divEle;
   }
@@ -84,9 +82,7 @@ class TextTitle {
 
   setTitle(value: string) {
     const inputEle = this.ele.querySelector('input');
-    if (inputEle) {
-      inputEle.value = value;
-    }
+    inputEle && (inputEle.value = value);
   }
 
   setActive(force: boolean) {
@@ -94,17 +90,6 @@ class TextTitle {
   }
 
   remove() {
-    /*
-    const xBtn = this.ele.querySelector('button');
-    if (!xBtn) {
-      return;
-    }
-
-    xBtn.onclick = (event) => {
-      event.stopPropagation();
-      this.ele.remove();
-    };
-    */
     this.ele.remove();
   }
 }
@@ -128,9 +113,7 @@ class TextArea {
     textareaEle.placeholder = this.readOnly ? '' : 'Start your text here';
 
     const parentNode = document.querySelector(this.parentSelector);
-    if (parentNode) {
-      parentNode.appendChild(textareaEle);
-    }
+    parentNode?.appendChild(textareaEle);
 
     return textareaEle;
   }
@@ -141,10 +124,7 @@ class TextArea {
 
   setText(value: string, fontSize = '') {
     this.ele.value = value;
-
-    if (fontSize) {
-      this.ele.style.fontSize = fontSize;
-    }
+    fontSize && (this.ele.style.fontSize = fontSize);
   }
 
   setActive(force: boolean) {
@@ -210,7 +190,7 @@ class TextContainer {
       console.error('Active tab is missing!');
     }
 
-    return activeNote as Note; // 무조건 Note를 return 해줘야 한다.
+    return activeNote as Note;
   }
 
   showActiveNote(activeTitle: string) {
@@ -236,28 +216,25 @@ class TextContainer {
     };
     this.noteList.push(note);
     this.showActiveNote(titleVal);
-    // this.makeNoteRemovable(note);
   }
 
   async makeNoteRemovable(title: string) {
-    if (title === 'welcomeText') { // title = 'welcomeText'일때 textTitle = undefined
-      return;
-    }
+    if (title === 'welcomeText') return;
 
     const foundText = await fetchGetText(title, this);
-    if (foundText === false) {
-      return;
-    }
+    if (!foundText) return;
 
     const foundNote = this.noteList.find((note) => note.title === title);
-    if (foundNote === undefined) {
+    if (!foundNote) {
       console.error('Note to remove not found!');
       return;
     }
 
     const { textArea } = foundNote;
     const text = textArea.getText();
-    const isToBeRemoved = !('text' in foundText) || foundText.text === text || confirm('Are you sure to close the tab without saving?'); // 빈 textarea거나 수정사항이 없을 때 그냥 닫음
+    const isNoTextContent = !('text' in foundText);
+    const isNoChange = foundText.text === text;
+    const isToBeRemoved = isNoTextContent || isNoChange || confirm('Are you sure to close the tab without saving?'); // 빈 textarea거나 수정사항이 없을 때 그냥 닫음
 
     if (isToBeRemoved) {
       this.remove(foundNote);
@@ -266,9 +243,7 @@ class TextContainer {
 
   remove(note: Note) {
     const { title } = note;
-    if (title === 'welcomeText') {
-      return;
-    }
+    if (title === 'welcomeText') return;
 
     const { noteList } = this;
     const idxRemove = noteList.indexOf(note);
@@ -291,19 +266,19 @@ class TextContainer {
   setPrevTabs(prevTabs: Tabs) {
     console.log('prevTabs: ', prevTabs);
 
-    if (prevTabs.tabs.length > 0) {
-      const { activeTitle, tabs } = prevTabs;
+    if (prevTabs.tabs.length === 0) return;
 
-      tabs.forEach((titleNtext) => {
-        const { title, text } = titleNtext;
+    const { activeTitle, tabs } = prevTabs;
 
-        if (title !== 'welcomeText') {
-          this.addNote(title, text);
-        }
-      });
+    tabs.forEach((titleNtext) => {
+      const { title, text } = titleNtext;
 
-      this.showActiveNote(activeTitle);
-    }
+      if (title !== 'welcomeText') {
+        this.addNote(title, text);
+      }
+    });
+
+    this.showActiveNote(activeTitle);
   }
 
   getTabs() {
@@ -355,9 +330,9 @@ async function logout(textContainer: TextContainer, pageToGo = 'welcome') {
 
       localStorage.removeItem('refreshToken');
 
-      alert('See you next time!');
+      // alert('See you next time!');
 
-      const urlToGo = pageToGo === 'welcome' ? 'https://localhost:3000' : 'https://localhost:3000/login';
+      const urlToGo = (pageToGo === 'welcome') ? 'https://localhost:3000' : 'https://localhost:3000/login';
       window.location.href = urlToGo;
     })
     .catch((err) => {
@@ -432,7 +407,7 @@ async function fetchGetText(title: string, textContainer: TextContainer) {
   const textId = transformStr(title);
   const url = `https://localhost:8000/user/${userId}/${textId}`;
 
-  let text: Text = false;
+  let text: Text = null;
 
   try {
     const res = await fetchAfterTokenRefreshed(url, {
@@ -538,16 +513,12 @@ async function fetchDeleteText(title: string, textContainer: TextContainer) {
 const onclickFuncMap: OnclickFuncMap = {
   async newText(textContainer: TextContainer) {
     const title = prompt('Input the title:', '');
-    if (title === null || title === '') {
-      return;
-    }
+    if (title === null || title === '') return;
 
     const textJson: Text = await fetchGetText(title, textContainer);
     console.log('GET in newText: ', textJson);
 
-    if (textJson === false) {
-      return;
-    }
+    if (!textJson) return;
 
     if ('title' in textJson) {
       alert('Title already exists in the system!');
@@ -559,9 +530,7 @@ const onclickFuncMap: OnclickFuncMap = {
 
   async open(textContainer: TextContainer) {
     const title = prompt('Input title of the text to open:', '');
-    if (title === null || title === '') {
-      return;
-    }
+    if (title === null || title === '') return;
 
     if (textContainer.includes(title)) {
       textContainer.showActiveNote(title);
@@ -571,9 +540,7 @@ const onclickFuncMap: OnclickFuncMap = {
     const textJson = await fetchGetText(title, textContainer);
     console.log('GET in open: ', textJson);
 
-    if (textJson === false) {
-      return;
-    }
+    if (!textJson) return;
 
     if ('title' in textJson) {
       textContainer.addNote(textJson.title, textJson.text);
@@ -584,21 +551,15 @@ const onclickFuncMap: OnclickFuncMap = {
 
   async rename(textContainer: TextContainer) {
     const activeNote = textContainer.getActiveNote();
-    if (activeNote.title === 'welcomeText') {
-      return;
-    }
+    if (activeNote.title === 'welcomeText') return;
 
     const { title } = activeNote;
     const newTitle = prompt('Input the new title:', '');
-    if (newTitle === null || newTitle === '' || newTitle === title) {
-      return;
-    }
+    if (newTitle === null || newTitle === '' || newTitle === title) return;
 
     const foundTextJson = await fetchGetText(newTitle, textContainer);
     console.log('GET in rename, checking if the new title exists: ', foundTextJson);
-    if (foundTextJson === false) {
-      return;
-    }
+    if (!foundTextJson) return;
 
     if ('title' in foundTextJson) {
       alert('New title is already stored!');
@@ -608,17 +569,13 @@ const onclickFuncMap: OnclickFuncMap = {
     const textJson = await fetchGetText(title, textContainer);
     console.log('GET in rename, get text info: ', textJson);
 
-    if (textJson === false) {
-      return;
-    }
+    if (!textJson) return;
 
     if ('title' in textJson) { // text being renamed exists in the server, need to update the server as well
       const textId = transformStr(newTitle);
       const result = await fetchPatchText(textId, 'title', [title, newTitle], textContainer);
 
-      if (result === false) {
-        return;
-      }
+      if (result === false) return;
 
       alert('Successfully renamed!');
     }
@@ -630,9 +587,7 @@ const onclickFuncMap: OnclickFuncMap = {
 
   async save(textContainer: TextContainer) {
     const activeNote = textContainer.getActiveNote();
-    if (activeNote.title === 'welcomeText') {
-      return;
-    }
+    if (activeNote.title === 'welcomeText') return;
 
     const { title, textArea } = activeNote;
     const text = textArea.getText();
@@ -640,11 +595,9 @@ const onclickFuncMap: OnclickFuncMap = {
     const textJson = await fetchGetText(title, textContainer);
     console.log('GET in save: ', textJson);
 
-    if (textJson === false) {
-      return;
-    }
+    if (!textJson) return;
 
-    if (!('title' in textJson)) { // brand-new text, add to the server
+    if (!textJson.title) { // brand-new text, add to the server
       fetchPostText(title, text, textContainer);
     } else if (text === textJson.text) { // already exists in the server, no need to save
       alert('Saved already!');
@@ -652,9 +605,7 @@ const onclickFuncMap: OnclickFuncMap = {
       const textId = transformStr(title);
       const result = await fetchPatchText(textId, 'text', [textJson.text, text], textContainer);
 
-      if (result === false) {
-        return;
-      }
+      if (result === false) return;
 
       alert('Successfully saved!');
     }
@@ -662,21 +613,15 @@ const onclickFuncMap: OnclickFuncMap = {
 
   async saveAs(textContainer: TextContainer) {
     const activeNote = textContainer.getActiveNote();
-    if (activeNote.title === 'welcomeText') {
-      return;
-    }
+    if (activeNote.title === 'welcomeText') return;
 
     const newTitle = prompt('Save as:', '');
-    if (newTitle === null || newTitle === '') {
-      return;
-    }
+    if (newTitle === null || newTitle === '') return;
 
     const textJson = await fetchGetText(newTitle, textContainer);
     console.log('GET in saveAs: ', textJson);
 
-    if (textJson === false) {
-      return;
-    }
+    if (!textJson) return;
 
     if ('title' in textJson) {
       alert('Title already exists in the system, please rename!');
@@ -689,9 +634,7 @@ const onclickFuncMap: OnclickFuncMap = {
 
   async delete(textContainer: TextContainer) {
     const activeNote = textContainer.getActiveNote();
-    if (activeNote.title === 'welcomeText') {
-      return;
-    }
+    if (activeNote.title === 'welcomeText') return;
 
     const { title } = activeNote;
     const isDeleted = await fetchDeleteText(title, textContainer);
@@ -741,9 +684,7 @@ class Notepad {
     const loginBtn = createBtn('Login');
 
     const parentNode = document.querySelector(this.loginSelector);
-    if (parentNode) {
-      parentNode.appendChild(loginBtn);
-    }
+    parentNode?.appendChild(loginBtn);
 
     loginBtn.onclick = () => login();
     return loginBtn;
@@ -753,9 +694,7 @@ class Notepad {
     const interactBtnList = this.interactBtnNameList.map((btnName) => {
       const interactBtn = createBtn(btnName);
       const parentNode = document.querySelector(this.interactSelector);
-      if (parentNode) {
-        parentNode.appendChild(interactBtn);
-      }
+      parentNode?.appendChild(interactBtn);
 
       let funcName = btnName.replace(' ', ''); // New Text => NewText
       funcName = funcName[0].toLowerCase() + funcName.slice(1); // NewText => newText

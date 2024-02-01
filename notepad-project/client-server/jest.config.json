@@ -1,0 +1,12 @@
+{
+  "preset": "jest-puppeteer",
+  "extensionsToTreatAsEsm": [".ts"],
+  "transform": {
+    "^.+\\.(ts)?$": [
+      "ts-jest",
+      {
+        "useESM": true
+      }
+    ]
+  }
+}

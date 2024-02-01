@@ -49,7 +49,7 @@ btn.onclick = async () => {
       localStorage.setItem('refreshToken', jsonObj.refreshToken);
     }
 
-    alert('Welcome!');
+    // alert('Welcome!');
 
     const url2 = `https://localhost:3000/user/${userId}`;
     window.location.href = url2;

@@ -5,29 +5,21 @@
   "main": "api.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon api.mjs",
-
-    "build-api": "babel api.mts --out-dir dist --extensions \".ts,.mts\"",
-    "build-helpers": "babel helpers-ts --out-dir helpers --extensions \".ts,.mts\"",
-    "build-models": "babel models-ts --out-dir models --extensions \".ts,.mts\"",
-    "build-mid": "babel middlewares-ts --out-dir middlewares --extensions \".ts,.mts\"",
-    "build-contr": "babel controllers-ts --out-dir controllers --extensions \".ts,.mts\"",
-    "build-routes": "babel routes-ts --out-dir routes --extensions \".ts,.mts\"",
-
-    "lint-api-ts": "eslint --no-cache api.mts --fix",
-    "lint-types-ts": "eslint --no-cache types.ts --fix",
-    "lint-helpers-ts": "eslint --no-cache helpers-ts/**/*.mts --fix",
-    "lint-models-ts": "eslint --no-cache models-ts/**/*.ts --fix",
-    "lint-mid-ts": "eslint --no-cache middlewares-ts/**/*.mts --fix",
-    "lint-contr-ts": "eslint --no-cache controllers-ts/**/*.mts --fix",
-    "lint-routes-ts": "eslint --no-cache routes-ts/**/*.mts --fix",
-
-    "lint-api": "eslint --no-cache api.mjs --fix",
-    "lint-helpers": "eslint --no-cache helpers/**/*.mjs --fix",
-    "lint-models": "eslint --no-cache models/**/*.mjs --fix",
-    "lint-mid": "eslint --no-cache middlewares/**/*.mjs --fix",
-    "lint-contr": "eslint --no-cache controllers/**/*.mjs --fix",
-    "lint-routes": "eslint --no-cache routes/**/*.mjs --fix"
+    "api": "nodemon originals/api.mjs",
+    "start": "이거 안됨: nodemon --exec babel-node src/api.mts", 
+    "build-api": "babel src --out-dir dist && tsc --noEmit",
+    "build-helpers": "babel helpers-src --out-dir helpers && tsc --noEmit",
+    "build-models": "babel models-src --out-dir models && tsc --noEmit",
+    "build-mid": "babel middlewares-src --out-dir middlewares && tsc --noEmit",
+    "build-contr": "babel controllers-src --out-dir controllers && tsc --noEmit",
+    "build-routes": "babel routes-src --out-dir routes && tsc --noEmit",
+    "lint-api": "eslint --no-cache src/**/*.mts --fix",
+    "lint-types": "eslint --no-cache types.ts --fix",
+    "lint-helpers": "eslint --no-cache helpers-src/**/*.mts --fix",
+    "lint-models": "eslint --no-cache models-src/**/*.ts --fix",
+    "lint-mid": "eslint --no-cache middlewares-src/**/*.mts --fix",
+    "lint-contr": "eslint --no-cache controllers-src/**/*.mts --fix",
+    "lint-routes": "eslint --no-cache routes-src/**/*.mts --fix"
   },
   "author": "AihuaJin",
   "license": "ISC",
@@ -49,9 +41,9 @@
   "devDependencies": {
     "@babel/cli": "^7.23.4",
     "@babel/core": "^7.23.7",
+    "@babel/node": "^7.23.9",
     "@babel/plugin-transform-runtime": "^7.23.7",
     "@babel/preset-env": "^7.23.8",
-    "@babel/preset-flow": "^7.23.3",
     "@babel/preset-typescript": "^7.23.3",
     "@babel/runtime": "^7.23.8",
     "@types/bcrypt": "^5.0.2",
@@ -67,9 +59,11 @@
     "@typescript-eslint/eslint-plugin": "^6.19.1",
     "@typescript-eslint/parser": "^6.19.1",
     "babel-plugin-module-extension": "^0.1.3",
+    "babel-watch": "^7.8.1",
     "eslint": "^8.56.0",
     "eslint-config-standard-with-typescript": "^43.0.1",
     "eslint-plugin-import": "^2.29.1",
-    "standard": "^17.1.0"
+    "standard": "^17.1.0",
+    "tsx": "^4.7.0"
   }
 }

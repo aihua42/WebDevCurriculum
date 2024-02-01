@@ -109,7 +109,8 @@
   "include": [
     "client.ts",
     "controllers",
-    "public"
+    "public",
+    "__tests__"
   ],
   "exclude": ["node_modules"]
 }
